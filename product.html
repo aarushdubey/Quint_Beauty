@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intense Black Kajal | Quint Beauty</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .product-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 4rem;
+            padding-top: 2rem;
+        }
+
+        @media (min-width: 900px) {
+            .product-layout {
+                grid-template-columns: 1.2fr 1fr;
+            }
+
+            .product-gallery {
+                position: sticky;
+                top: 100px;
+            }
+        }
+
+        .product-main-img {
+            width: 100%;
+            height: 500px;
+            background: #F9F7F5;
+            margin-bottom: 1rem;
+            object-fit: cover;
+            cursor: zoom-in;
+        }
+
+        .product-thumbs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .thumb {
+            height: 100px;
+            background: #eee;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+            overflow: hidden;
+        }
+
+        .thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .thumb:hover,
+        .thumb.active {
+            opacity: 1;
+            border: 1px solid black;
+        }
+
+        .product-details h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .price {
+            font-size: 1.5rem;
+            color: var(--color-text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .variant-selector {
+            margin-bottom: 2rem;
+        }
+
+        .color-opt {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+            cursor: pointer;
+            border: 1px solid #ddd;
+        }
+
+        .color-opt.selected {
+            border: 2px solid black;
+            transform: scale(1.1);
+        }
+
+        .add-to-cart-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .qty-input {
+            width: 60px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid #ddd;
+            font-family: var(--font-body);
+        }
+
+        .tabs {
+            border-top: 1px solid #eee;
+            margin-top: 3rem;
+        }
+
+        .tab-headers {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tab-btn {
+            padding: 1rem 0;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-weight: 500;
+            opacity: 0.6;
+        }
+
+        .tab-btn.active {
+            border-bottom-color: black;
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header id="header">
+        <div class="container header-inner flex-between">
+            <button class="mobile-menu-btn" aria-label="Menu">
+                <i data-feather="menu"></i>
+            </button>
+            <a href="index.html" class="logo">QUINT BEAUTY</a>
+            <nav class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="shop.html" class="active" style="text-decoration: underline;">Shop</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+            <div class="nav-icons flex">
+                <a href="#" aria-label="Search"><i data-feather="search"></i></a>
+                <a href="cart.html" aria-label="Cart" class="cart-icon">
+                    <i data-feather="shopping-bag"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="container product-layout">
+
+            <!-- Gallery -->
+            <div class="product-gallery fade-in-up">
+                <img src="https://images.unsplash.com/photo-1620802051782-959c299e984a?q=80&w=2632&auto=format&fit=crop"
+                    class="product-main-img" id="mainImg">
+                <div class="product-thumbs">
+                    <div class="thumb active"
+                        onclick="changeImage(this, 'https://images.unsplash.com/photo-1620802051782-959c299e984a?q=80&w=2632&auto=format&fit=crop')">
+                        <img src="https://images.unsplash.com/photo-1620802051782-959c299e984a?q=80&w=2632&auto=format&fit=crop"
+                            alt="Thumb 1">
+                    </div>
+                    <div class="thumb"
+                        onclick="changeImage(this, 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2671&auto=format&fit=crop')">
+                        <img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2671&auto=format&fit=crop"
+                            alt="Thumb 2">
+                    </div>
+                    <div class="thumb"
+                        onclick="changeImage(this, 'https://images.unsplash.com/photo-1596704017382-30538638b44d?q=80&w=2069&auto=format&fit=crop')">
+                        <img src="https://images.unsplash.com/photo-1596704017382-30538638b44d?q=80&w=2069&auto=format&fit=crop"
+                            alt="Thumb 3">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details -->
+            <div class="product-details reveal delay-100">
+                <div class="uppercase"
+                    style="font-size: 0.8rem; letter-spacing: 0.1rem; color: #888; margin-bottom: 0.5rem;">Eyes</div>
+                <h1>Intense Black Kajal</h1>
+                <div class="price">₹1200.00</div>
+
+                <p style="margin-bottom: 2rem; color: #555;">
+                    Define your eyes with our ultra-pigmented, long-lasting kajal.
+                    Smudge-proof, waterproof, and enriched with Vitamin E for a smooth glide application.
+                    Perfect for creating bold, dramatic looks or subtle definition.
+                </p>
+
+                <div class="variant-selector">
+                    <p style="margin-bottom: 0.5rem; font-size: 0.9rem;">Shade: <strong>Pitch Black</strong></p>
+                    <div class="flex">
+                        <span class="color-opt selected" style="background: #000;"></span>
+                        <!-- <span class="color-opt" style="background: #4B3621;"></span> -->
+                    </div>
+                </div>
+
+                <div class="add-to-cart-section">
+                    <input type="number" value="1" min="1" class="qty-input">
+                    <button class="btn btn-primary add-to-cart-btn" style="flex: 1;">Add to Cart</button>
+                </div>
+
+                <div class="tabs">
+                    <div class="tab-headers">
+                        <button class="tab-btn active">Description</button>
+                        <button class="tab-btn">Ingredients</button>
+                        <button class="tab-btn">How to Use</button>
+                    </div>
+                    <div class="tab-content">
+                        <p style="color: #666; font-size: 0.95rem;">
+                            <strong>Deep pigmentation in a single stroke.</strong><br><br>
+                            Our detailed formula ensures 12-hour wear without smudging. Safe for contact lens wearers
+                            and ophthalmologically tested.
+                            The creamy texture sets to a matte finish within seconds.
+                        </p>
+                        <ul style="margin-top: 1rem;color: #666; list-style: disc; padding-left: 1.2rem;">
+                            <li>Waterproof & Smudge-proof</li>
+                            <li>Enriched with Vitamin E</li>
+                            <li>Paraben-free</li>
+                            <li>Vegan & Cruelty-free</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- You might also like -->
+    <section class="section" style="background: var(--color-bg-alt);">
+        <div class="container reveal">
+            <h3 style="text-align: center; margin-bottom: 2rem;">You Might Also Like</h3>
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                <a href="#" class="product-card">
+                    <div class="product-img-wrapper" style="height: 300px; background: white; margin-bottom: 1rem;">
+                        <img src="https://images.unsplash.com/photo-1631214500115-598fc2cb8d2d?q=80&w=2525&auto=format&fit=crop"
+                            alt="Velvet Lip Gloss">
+                    </div>
+                    <div class="product-info text-center">
+                        <h4>Velvet Lip Gloss</h4>
+                        <p>₹1800.00</p>
+                    </div>
+                </a>
+                <a href="#" class="product-card">
+                    <div class="product-img-wrapper" style="height: 300px; background: white; margin-bottom: 1rem;">
+                        <img src="https://images.unsplash.com/photo-1631730486784-5456119f69ae?q=80&w=2575&auto=format&fit=crop"
+                            alt="Volume Mascara">
+                    </div>
+                    <div class="product-info text-center">
+                        <h4>Volume Mascara</h4>
+                        <p>₹1500.00</p>
+                    </div>
+                </a>
+                <a href="#" class="product-card">
+                    <div class="product-img-wrapper" style="height: 300px; background: white; margin-bottom: 1rem;">
+                        <img src="https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=2680&auto=format&fit=crop"
+                            alt="Setting Spray">
+                    </div>
+                    <div class="product-info text-center">
+                        <h4>Setting Spray</h4>
+                        <p>₹2200.00</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container grid footer-grid">
+            <div class="footer-col">
+                <a href="#" class="logo" style="color: white; display: block; margin-bottom: 1rem;">QUINT BEAUTY</a>
+                <p style="color: #aaa; max-width: 300px; font-size: 0.9rem;">
+                    Quint Beauty is dedicated to providing high-quality, minimal makeup products that enhance your
+                    natural beauty.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Shop</h4>
+                <ul>
+                    <li><a href="shop.html">All Products</a></li>
+                    <li><a href="#">Best Sellers</a></li>
+                    <li><a href="#">New Arrivals</a></li>
+                    <li><a href="#">Sets</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Help</h4>
+                <ul>
+                    <li><a href="#">Shipping & Returns</a></li>
+                    <li><a href="#">FAQ</a></li>
+                    <li><a href="contact.html">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Follow Us</h4>
+                <div class="flex" style="gap: 1rem;">
+                    <a href="#"><i data-feather="instagram"></i></a>
+                    <a href="#"><i data-feather="facebook"></i></a>
+                    <a href="#"><i data-feather="twitter"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="container"
+            style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #333; text-align: center; font-size: 0.8rem; color: #666;">
+            &copy; 2025 QUINT BEAUTY All rights reserved.
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        feather.replace();
+    </script>
+    <script src="js/main.js"></script>
+    <script>
+        function changeImage(element, src) {
+            document.getElementById('mainImg').src = src;
+            document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

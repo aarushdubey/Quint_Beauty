@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | Quint Beauty</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header id="header">
+        <div class="container header-inner flex-between">
+            <button class="mobile-menu-btn" aria-label="Menu"><i data-feather="menu"></i></button>
+            <a href="index.html" class="logo">QUINT BEAUTY</a>
+            <nav class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="shop.html">Shop</a>
+                <a href="about.html" class="active" style="text-decoration: underline;">About</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+            <div class="nav-icons flex">
+                <a href="#" aria-label="Search"><i data-feather="search"></i></a>
+                <a href="cart.html" aria-label="Cart" class="cart-icon">
+                    <i data-feather="shopping-bag"></i><span class="cart-count">0</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="container" style="max-width: 800px; text-align: center;">
+            <h1 class="fade-in-up" style="margin-bottom: 2rem;">Our Story</h1>
+            <p class="fade-in-up delay-100"
+                style="font-size: 1.2rem; color: #555; line-height: 1.8; margin-bottom: 3rem;">
+                Quint Beauty was born out of a desire for simplicity in a complicated world. We believe that beauty
+                shouldn't be about masking who you are, but enhancing the unique features that make you, you.
+            </p>
+            <div class="fade-in-up delay-200"
+                style="width: 100%; height: 400px; margin-bottom: 3rem; overflow: hidden; border-radius: 4px;">
+                <img src="https://images.unsplash.com/photo-1522335789203-abd1c1cd94d0?q=80&w=2682&auto=format&fit=crop"
+                    style="width: 100%; height: 100%; object-fit: cover;" alt="Quint Beauty Studio">
+            </div>
+
+            <div class="reveal">
+                <h2 style="margin-bottom: 1.5rem;">The Philosophy</h2>
+                <p style="color: #666; margin-bottom: 1.5rem;">
+                    Minimal. Elegant. Quintessential. We focus on creating high-quality, versatile essentials that fit
+                    seamlessly into your daily routine. No 20-step routines, just effective, beautiful products that
+                    work.
+                </p>
+                <p style="color: #666;">
+                    Our formulas are dermatologically tested, cruelty-free, and designed to last all day, empowering you
+                    to face the world with confidence and grace.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container grid footer-grid">
+            <div class="footer-col">
+                <a href="#" class="logo" style="color: white; display: block; margin-bottom: 1rem;">QUINT BEAUTY</a>
+                <p style="color: #aaa; max-width: 300px; font-size: 0.9rem;">Quint Beauty is dedicated to providing
+                    high-quality, minimal makeup products.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Shop</h4>
+                <ul>
+                    <li><a href="shop.html">All Products</a></li>
+                    <li><a href="#">Best Sellers</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Help</h4>
+                <ul>
+                    <li><a href="#">Shipping</a></li>
+                    <li><a href="contact.html">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Follow Us</h4>
+                <div class="flex" style="gap: 1rem;"><a href="#"><i data-feather="instagram"></i></a><a href="#"><i
+                            data-feather="facebook"></i></a></div>
+            </div>
+        </div>
+        <div class="container"
+            style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #333; text-align: center; font-size: 0.8rem; color: #666;">
+            &copy; 2025 QUINT BEAUTY All rights reserved.
+        </div>
+    </footer>
+    <script>feather.replace();</script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
