@@ -115,54 +115,15 @@
                         <div class="form-group"><label>Zip Code</label><input type="text" required></div>
                     </div>
                     <div class="form-group">
-                        <label>Country</label>
-                        <select>
-                            <option>United States</option>
-                            <option>Canada</option>
-                            <option>United Kingdom</option>
-                            <option>India</option>
-                        </select>
+                        <label>State</label>
+                        <input type="text" placeholder="e.g., Maharashtra, Delhi" required>
                     </div>
                 </form>
             </div>
 
             <!-- Right: Summary -->
             <div class="order-summary-box">
-                <h3 style="margin-bottom: 1.5rem;">Order Summary</h3>
-
-                <!-- Product 1 -->
-                <div class="flex" style="gap: 1rem; margin-bottom: 1.5rem; align-items: start;">
-                    <div style="width: 60px; height: 60px; background: #fff; min-width: 60px;"></div>
-                    <div style="flex: 1;">
-                        <h4 style="font-size: 0.9rem; margin-bottom: 0.2rem;">Intense Black Kajal</h4>
-                        <p style="font-size: 0.8rem; color: #777;">Pitch Black</p>
-                    </div>
-                    <span>₹1200.00</span>
-                </div>
-
-                <div class="order-row">
-                    <span>Subtotal</span>
-                    <span>₹1200.00</span>
-                </div>
-                <div class="order-row">
-                    <span>Shipping</span>
-                    <span>Free</span>
-                </div>
-                <div class="order-total">
-                    <span>Total</span>
-                    <span>₹1200.00</span>
-                </div>
-
-                <div class="payment-methods">
-                    <h4 style="margin-bottom: 1rem;">Payment</h4>
-                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 1rem;">Transactions are secure and
-                        encrypted.</p>
-
-                    <!-- Razorpay Button Placeholder -->
-                    <button class="btn btn-primary" style="width: 100%;">Pay Now</button>
-                    <p style="text-align: center; margin-top: 1rem; font-size: 0.8rem; color: #888;">Powered by Razorpay
-                    </p>
-                </div>
+                <!-- Content will be dynamically populated by renderCheckoutPage() in main.js -->
             </div>
 
         </div>
@@ -174,6 +135,7 @@
             &copy; 2025 QUINT BEAUTY All rights reserved.
         </div>
     </footer>
+    <script src="js/main.js"></script>
     <script>feather.replace();</script>
 </body>
 
