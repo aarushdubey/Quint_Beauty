@@ -13,11 +13,16 @@ const firebaseConfig = {
     measurementId: "G-TEM9DYZEEC"
 };
 
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
+
+// Export auth and db for admin dashboard (must be before other code uses them)
+export { auth, db };
+
 
 // --- FIRESTORE DATABASE FUNCTIONS ---
 
@@ -60,8 +65,6 @@ export async function getUserOrdersFromCloud(userId) {
 window.saveOrderToCloud = saveOrderToCloud;
 window.getUserOrdersFromCloud = getUserOrdersFromCloud;
 
-// Export auth and db for admin dashboard
-export { auth, db };
 
 // Current User State (can be accessed globally)
 window.currentUser = null;
