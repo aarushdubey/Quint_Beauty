@@ -388,7 +388,9 @@
                 let html = '';
 
                 orders.forEach((order, index) => {
-                    const date = new Date(order.date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+                    const orderDate = new Date(order.date);
+                    const date = orderDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+                    const time = orderDate.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
 
                     let imagesHTML = '';
                     order.items.forEach(item => {
@@ -401,7 +403,7 @@
                             <div class="order-meta">
                                 <div>
                                     <span>Order Placed</span>
-                                    <strong>${date}</strong>
+                                    <strong>${date} at ${time}</strong>
                                 </div>
                                 <div>
                                     <span>Total</span>
@@ -459,6 +461,10 @@
                 `;
             });
 
+            const orderDate = new Date(order.date);
+            const formattedDate = orderDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+            const formattedTime = orderDate.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
+
             modalBody.innerHTML = `
                 <h2 style="margin-bottom: 2rem;">Order Details</h2>
                 
@@ -466,6 +472,9 @@
                     <div>
                         <span style="color: #777; display: block; font-size: 0.9rem;">Order ID</span>
                         <strong style="font-size: 1.2rem;">${order.orderId}</strong>
+                        <div style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">
+                            Placed on ${formattedDate} at ${formattedTime}
+                        </div>
                     </div>
                     <div style="text-align: right;">
                          <button class="btn btn-primary" onclick="alert('Tracking functionality requires a shipping partner integration.')">Track Package</button>
