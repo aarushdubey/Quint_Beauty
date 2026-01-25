@@ -15,6 +15,24 @@
     <script src="https://unpkg.com/feather-icons"></script>
     <!-- Styles -->
     <link rel="stylesheet" href="css/style.css">
+    <script>
+        // IMMEDIATE PRICE FIXER
+        try {
+            const cart = JSON.parse(localStorage.getItem('quintCart')) || [];
+            let updated = false;
+            cart.forEach(item => {
+                if (item.name.includes("Kajal") && item.price !== "2.00") {
+                    item.price = "2.00";
+                    updated = true;
+                }
+            });
+            if (updated) {
+                localStorage.setItem('quintCart', JSON.stringify(cart));
+                // Reload immediately to reflect change
+                window.location.reload();
+            }
+        } catch (e) { }
+    </script>
     <style>
         .cart-table {
             width: 100%;
@@ -101,7 +119,8 @@
             </nav>
             <div class="nav-icons flex">
                 <a href="#" aria-label="Search"><i data-feather="search"></i></a>
-                <a href="orders.html" aria-label="My Orders" style="margin-right: 0.5rem;"><i data-feather="user"></i></a> <a href="cart.html" aria-label="Cart" class="cart-icon">
+                <a href="orders.html" aria-label="My Orders" style="margin-right: 0.5rem;"><i
+                        data-feather="user"></i></a> <a href="cart.html" aria-label="Cart" class="cart-icon">
                     <i data-feather="shopping-bag"></i><span class="cart-count">0</span>
                 </a>
             </div>
