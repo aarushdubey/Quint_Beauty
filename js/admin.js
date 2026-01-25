@@ -605,13 +605,14 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
     const originalText = submitBtn.textContent;
 
     try {
-        let imageUrl = document.getElementById('productImage').value; // For edit mode (existing image)
+        let imageUrl = '';
 
         // Check if new image is being uploaded
         const fileInput = document.getElementById('productImageFile');
         const imageFile = fileInput?.files[0];
+
         if (imageFile) {
-            // Check if API key is configured
+            // New image selected - upload it
             if (IMGBB_API_KEY === 'YOUR_IMGBB_API_KEY_HERE') {
                 alert('Please configure your ImgBB API key in admin.js\n\nGet your free API key at: https://api.imgbb.com/');
                 return;
@@ -619,6 +620,12 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
 
             submitBtn.textContent = 'Uploading image...';
             imageUrl = await uploadImageToImgBB(imageFile);
+        } else {
+            // No new image - check if editing existing product with image
+            const hiddenImageUrl = document.getElementById('productImage').value;
+            if (hiddenImageUrl && hiddenImageUrl !== 'pending_upload') {
+                imageUrl = hiddenImageUrl;
+            }
         }
 
         if (!imageUrl) {
