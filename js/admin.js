@@ -429,37 +429,37 @@ function displayProducts() {
 // ImgBB API Key (Get yours free at: https://api.imgbb.com/)
 const IMGBB_API_KEY = '936f516a5f95c452991da863a0bc841d';
 
+// Track if image upload has been initialized
+let imageUploadInitialized = false;
+
 // Initialize drag & drop functionality
 function initializeImageUpload() {
+    // Only initialize once
+    if (imageUploadInitialized) {
+        console.log('Image upload already initialized');
+        return;
+    }
+
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('productImageFile');
-    const dropZoneContent = document.getElementById('dropZoneContent');
-    const imagePreview = document.getElementById('imagePreview');
-    const previewImg = document.getElementById('previewImg');
-    const fileNameDisplay = document.getElementById('fileName');
-    const removeImageBtn = document.getElementById('removeImage');
 
     if (!dropZone || !fileInput) {
         console.error('Drop zone or file input not found');
         return;
     }
 
-    // Remove any existing event listeners by cloning
-    const newDropZone = dropZone.cloneNode(true);
-    dropZone.parentNode.replaceChild(newDropZone, dropZone);
-    const dropZoneElement = document.getElementById('dropZone');
-    const fileInputElement = document.getElementById('productImageFile');
+    console.log('Initializing image upload...');
 
     // Click to upload
-    dropZoneElement.addEventListener('click', (e) => {
+    dropZone.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        fileInputElement.click();
+        fileInput.click();
     });
 
     // Prevent default drag behaviors
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropZoneElement.addEventListener(eventName, (e) => {
+        dropZone.addEventListener(eventName, (e) => {
             e.preventDefault();
             e.stopPropagation();
         });
@@ -467,21 +467,21 @@ function initializeImageUpload() {
 
     // Highlight drop zone when dragging over
     ['dragenter', 'dragover'].forEach(eventName => {
-        dropZoneElement.addEventListener(eventName, () => {
-            dropZoneElement.style.borderColor = '#4CAF50';
-            dropZoneElement.style.background = '#f1f8f4';
+        dropZone.addEventListener(eventName, () => {
+            dropZone.style.borderColor = '#4CAF50';
+            dropZone.style.background = '#f1f8f4';
         });
     });
 
     ['dragleave', 'drop'].forEach(eventName => {
-        dropZoneElement.addEventListener(eventName, () => {
-            dropZoneElement.style.borderColor = '#ddd';
-            dropZoneElement.style.background = '#fafafa';
+        dropZone.addEventListener(eventName, () => {
+            dropZone.style.borderColor = '#ddd';
+            dropZone.style.background = '#fafafa';
         });
     });
 
     // Handle dropped files
-    dropZoneElement.addEventListener('drop', (e) => {
+    dropZone.addEventListener('drop', (e) => {
         const files = e.dataTransfer.files;
         if (files.length > 0) {
             handleImageFile(files[0]);
@@ -489,7 +489,7 @@ function initializeImageUpload() {
     });
 
     // Handle selected files
-    fileInputElement.addEventListener('change', (e) => {
+    fileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
             handleImageFile(e.target.files[0]);
         }
@@ -500,12 +500,15 @@ function initializeImageUpload() {
     if (removeBtn) {
         removeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            fileInputElement.value = '';
+            fileInput.value = '';
             document.getElementById('productImage').value = '';
             document.getElementById('dropZoneContent').style.display = 'block';
             document.getElementById('imagePreview').style.display = 'none';
         });
     }
+
+    imageUploadInitialized = true;
+    console.log('Image upload initialized successfully');
 }
 
 // Handle image file
