@@ -98,22 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const revealElements = document.querySelectorAll('.reveal');
     revealElements.forEach(el => observer.observe(el));
-
-    // FORCE FIX: Update Kajal price in local storage if old price is found
-    const currentCart = JSON.parse(localStorage.getItem('quintCart')) || [];
-    let cartModified = false;
-    currentCart.forEach(item => {
-        if (item.name === "Intense Black Kajal" && item.price !== "10.00") {
-            item.price = "10.00";
-            cartModified = true;
-        }
-    });
-    if (cartModified) {
-        localStorage.setItem('quintCart', JSON.stringify(currentCart));
-        refreshCartUI();
-        if (document.querySelector('.cart-table')) renderCartPage();
-        console.log('Fixed old prices in cart.');
-    }
 });
 
 // --- Cart Logic ---
@@ -228,13 +212,13 @@ function setupAddToCartButtons() {
 
                 product = {
                     name: title ? title.innerText.trim() : 'Detailed Product',
-                    price: price ? price.innerText.replace(/[^0-9.]/g, '') : '10.00',
+                    price: price ? price.innerText.replace(/[^0-9.]/g, '') : '2.00',
                     image: img ? img.src : '',
                     quantityToAdd: addedQty
                 };
             } else {
                 // Final fallback
-                product = { name: "Quint Beauty Product", price: "10.00", image: "assets/images/product-1.jpg" };
+                product = { name: "Quint Beauty Product", price: "2.00", image: "assets/images/product-1.jpg" };
             }
 
             addToCart(product, product.quantityToAdd || 1);
