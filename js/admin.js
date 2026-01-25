@@ -130,6 +130,8 @@ function switchPage(pageName) {
     // Load page data
     if (pageName === 'orders') {
         loadAllOrders();
+    } else if (pageName === 'products') {
+        loadProducts();
     }
 }
 
@@ -343,5 +345,174 @@ window.closeOrderModal = function () {
 document.getElementById('orderModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'orderModal') {
         window.closeOrderModal();
+    }
+});
+
+// ========== PRODUCT MANAGEMENT ==========
+
+import { addDoc, updateDoc, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+let allProducts = [];
+let editingProductId = null;
+
+// Load Products from Firestore
+async function loadProducts() {
+    try {
+        const productsRef = collection(db, 'products');
+        const q = query(productsRef, orderBy('name', 'asc'));
+        const querySnapshot = await getDocs(q);
+
+        allProducts = [];
+        querySnapshot.forEach((doc) => {
+            allProducts.push({ id: doc.id, ...doc.data() });
+        });
+
+        console.log('Loaded products:', allProducts.length);
+        displayProducts();
+
+    } catch (error) {
+        console.error('Error loading products:', error);
+        document.getElementById('productsList').innerHTML =
+            '<p style="text-align: center; padding: 2rem; color: red;">Error loading products. Please refresh.</p>';
+    }
+}
+
+// Display Products
+function displayProducts() {
+    const container = document.getElementById('productsList');
+
+    if (allProducts.length === 0) {
+        container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #999;">No products yet. Click "Add Product" to get started!</p>';
+        return;
+    }
+
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;';
+
+    allProducts.forEach(product => {
+        const card = document.createElement('div');
+        card.style.cssText = 'background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s;';
+        card.onmouseenter = () => card.style.transform = 'translateY(-4px)';
+        card.onmouseleave = () => card.style.transform = 'translateY(0)';
+
+        card.innerHTML = `
+            <img src="${product.image}" style="width: 100%; height: 200px; object-fit: cover;">
+            <div style="padding: 1rem;">
+                <h4 style="margin: 0 0 0.5rem 0; font-size: 1.1rem;">${product.name}</h4>
+                <p style="color: #666; font-size: 0.9rem; margin: 0 0 0.5rem 0; line-height: 1.4;">${product.description}</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <span style="font-size: 1.2rem; font-weight: 600;">₹${parseFloat(product.price).toFixed(2)}</span>
+                    <span style="color: ${product.stock > 10 ? '#388e3c' : product.stock > 0 ? '#f57c00' : '#d32f2f'}; font-size: 0.85rem;">
+                        Stock: ${product.stock}
+                    </span>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-outline" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;" onclick="editProduct('${product.id}')">
+                        Edit
+                    </button>
+                    <button class="btn btn-outline" style="flex: 1; padding: 0.5rem; font-size: 0.85rem; color: #d32f2f; border-color: #d32f2f;" onclick="deleteProduct('${product.id}', '${product.name}')">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        `;
+
+        grid.appendChild(card);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(grid);
+}
+
+// Open Add Product Modal
+document.getElementById('addProductBtn')?.addEventListener('click', () => {
+    editingProductId = null;
+    document.getElementById('productModalTitle').textContent = 'Add New Product';
+    document.getElementById('productSubmitText').textContent = 'Add Product';
+    document.getElementById('productForm').reset();
+    document.getElementById('productModal').classList.add('active');
+});
+
+// Close Product Modal
+window.closeProductModal = function () {
+    document.getElementById('productModal').classList.remove('active');
+    editingProductId = null;
+};
+
+// Submit Product Form
+document.getElementById('productForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const productData = {
+        name: document.getElementById('productName').value,
+        description: document.getElementById('productDescription').value,
+        price: parseFloat(document.getElementById('productPrice').value),
+        stock: parseInt(document.getElementById('productStock').value),
+        category: document.getElementById('productCategory').value,
+        image: document.getElementById('productImage').value,
+        updatedAt: new Date().toISOString()
+    };
+
+    try {
+        if (editingProductId) {
+            // Update existing product
+            const productRef = doc(db, 'products', editingProductId);
+            await updateDoc(productRef, productData);
+            alert('Product updated successfully!');
+        } else {
+            // Add new product
+            productData.createdAt = new Date().toISOString();
+            await addDoc(collection(db, 'products'), productData);
+            alert('Product added successfully!');
+        }
+
+        closeProductModal();
+        await loadProducts();
+
+    } catch (error) {
+        console.error('Error saving product:', error);
+        alert('Error saving product: ' + error.message);
+    }
+});
+
+// Edit Product
+window.editProduct = function (productId) {
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) return;
+
+    editingProductId = productId;
+    document.getElementById('productModalTitle').textContent = 'Edit Product';
+    document.getElementById('productSubmitText').textContent = 'Update Product';
+
+    document.getElementById('productName').value = product.name;
+    document.getElementById('productDescription').value = product.description;
+    document.getElementById('productPrice').value = product.price;
+    document.getElementById('productStock').value = product.stock;
+    document.getElementById('productCategory').value = product.category;
+    document.getElementById('productImage').value = product.image;
+
+    document.getElementById('productModal').classList.add('active');
+};
+
+// Delete Product
+window.deleteProduct = async function (productId, productName) {
+    if (!confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+        return;
+    }
+
+    try {
+        await deleteDoc(doc(db, 'products', productId));
+        alert('Product deleted successfully!');
+        await loadProducts();
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        alert('Error deleting product: ' + error.message);
+    }
+};
+
+// Close product modal on outside click
+document.getElementById('productModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'productModal') {
+        closeProductModal();
     }
 });
