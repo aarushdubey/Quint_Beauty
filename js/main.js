@@ -550,13 +550,33 @@ function handlePaymentSuccess(response, formData, cart, totalAmount) {
     // Clear the cart
     localStorage.removeItem('quintCart');
 
+    // --- GENERATE EMAIL HTML FOR ITEMS ---
+    let itemsHTML = '';
+    cart.forEach(item => {
+        itemsHTML += `
+            <table style="width: 100%; border-collapse: collapse">
+                <tr style="vertical-align: top">
+                  <td style="padding: 12px 0;">
+                    <strong style="font-size:14px; display:block;">${item.name}</strong>
+                    <div style="font-size: 13px; color: #888;">Qty: ${item.quantity}</div>
+                  </td>
+                  <td style="padding: 12px 0; text-align:right; white-space: nowrap">
+                    <strong>₹${item.price}</strong>
+                  </td>
+                </tr>
+            </table>`;
+    });
+
     // --- SEND EMAIL CONFIRMATION ---
     const emailParams = {
-        to_email: formData.email,
-        customer_name: formData.firstName,
+        to_email: formData.email, // Ensure template has {{to_email}} in the "To" field
+        email: formData.email, // For the footer {{email}}
         order_id: orderDetails.orderId,
-        amount: totalAmount,
-        message: "Thank you for shopping with Quint Beauty! Your order has been placed successfully."
+        order_items_html: itemsHTML, // NEW: HTML string for items (Use triple braces {{{order_items_html}}} in template)
+        "cost.shipping": "0.00",
+        "cost.tax": "0.00", // Inclusive
+        "cost.total": totalAmount.toFixed(2),
+        customer_name: formData.firstName
     };
 
     emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
