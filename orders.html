@@ -430,7 +430,7 @@
             } catch (e) {
                 console.error("Error rendering orders:", e);
                 const ordersContainer = document.getElementById('ordersList');
-                if (ordersContainer) ordersContainer.innerHTML = '<div style="text-align:center; padding:4rem;"><p style="color:red; margin-bottom:1rem;">Something went wrong loading your orders.</p><button onclick="window.location.reload()" class="btn btn-outline">Try Again</button></div>';
+                if (ordersContainer) ordersContainer.innerHTML = `<div style="text-align:center; padding:4rem;"><p style="color:red; margin-bottom:1rem;">Something went wrong loading your orders.</p><p style="font-size:0.9rem; color:#666; margin-bottom:1rem;">Error: ${e.message}</p><button onclick="window.location.reload()" class="btn btn-outline">Try Again</button></div>`;
             }
         }
 
