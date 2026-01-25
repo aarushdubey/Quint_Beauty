@@ -4,7 +4,7 @@
 const productsDB = {
     'kajal': {
         name: "Intense Black Kajal",
-        price: "10.00",
+        price: "2.00",
         image: "assets/images/product-1.jpg",
         desc: "Define your eyes with our ultra-pigmented, long-lasting kajal. Smudge-proof and waterproof."
     },
@@ -613,13 +613,20 @@ function handlePaymentFailure(response) {
 }
 
 // Save order to history (Supports User Specific Storage)
-function saveOrderToHistory(orderData) {
+async function saveOrderToHistory(orderData) {
     let storageKey = 'quintOrders'; // Default guest storage
 
     // Check if we have a logged-in user (set by firebase-init.js)
     if (window.currentUser && window.currentUser.uid) {
         storageKey = `quintOrders_${window.currentUser.uid}`;
-        console.log(`Saving order to user storage: ${storageKey}`);
+        console.log(`Saving order to LOCAL storage: ${storageKey}`);
+
+        // --- NEW: SAVE TO CLOUD FIRESTORE ---
+        if (window.saveOrderToCloud) {
+            console.log("Attempting to save to Cloud Database...");
+            await window.saveOrderToCloud(window.currentUser.uid, orderData);
+        }
+        // -------------------------------------
     } else {
         console.log("Saving order to guest storage");
     }

@@ -323,7 +323,7 @@
             feather.replace();
         }
 
-        function renderUserOrders(user) {
+        async function renderUserOrders(user) {
             try {
                 const ordersContainer = document.getElementById('ordersList');
 
@@ -343,10 +343,23 @@
                 }
 
                 // Load Orders specific to this User UID
-                const storageKey = `quintOrders_${user.uid}`;
-                const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
+                // TRY CLOUD FIRST
+                let orders = [];
+                if (window.getUserOrdersFromCloud) {
+                    try {
+                        console.log("Fetching orders from Cloud Firestore...");
+                        orders = await window.getUserOrdersFromCloud(user.uid);
+                    } catch (e) { console.error("Cloud fetch failed", e); }
+                }
 
-                console.log("Orders found for user:", orders.length); // Debug log
+                // Fallback to Local Storage if Cloud is empty (or failed)
+                if (productsDB && orders.length === 0) {
+                    const storageKey = `quintOrders_${user.uid}`;
+                    orders = JSON.parse(localStorage.getItem(storageKey)) || [];
+                    console.log("Fetched from Local Backup:", orders.length);
+                }
+
+                console.log("Total Orders found:", orders.length);
 
                 if (orders.length === 0) {
                     // Clear the loading message first

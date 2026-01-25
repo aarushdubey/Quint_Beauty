@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -15,7 +16,49 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
+
+// --- FIRESTORE DATABASE FUNCTIONS ---
+
+// 1. Save Order to Cloud
+export async function saveOrderToCloud(userId, orderData) {
+    try {
+        const ordersRef = collection(db, "orders");
+        // Add user ID to the order data itself for security rules
+        const orderWithUser = { ...orderData, uid: userId };
+        const docRef = await addDoc(ordersRef, orderWithUser);
+        console.log("Document written with ID: ", docRef.id);
+        return true;
+    } catch (e) {
+        console.error("Error adding document: ", e);
+        return false;
+    }
+}
+
+// 2. Get User Orders from Cloud
+export async function getUserOrdersFromCloud(userId) {
+    try {
+        const ordersRef = collection(db, "orders");
+        // Query: Get orders where uid == userId
+        const q = query(ordersRef, where("uid", "==", userId), orderBy("date", "desc"));
+
+        const querySnapshot = await getDocs(q);
+        let orders = [];
+        querySnapshot.forEach((doc) => {
+            orders.push({ id: doc.id, ...doc.data() });
+        });
+        return orders;
+    } catch (e) {
+        console.error("Error getting documents: ", e);
+        // Fallback to local storage logic handled by caller if empty
+        return [];
+    }
+}
+
+// Make them available globally for main.js
+window.saveOrderToCloud = saveOrderToCloud;
+window.getUserOrdersFromCloud = getUserOrdersFromCloud;
 
 // Current User State (can be accessed globally)
 window.currentUser = null;
