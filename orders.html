@@ -271,50 +271,83 @@
     </footer>
 
     <script src="js/main.js?v=1.1"></script>
-    <script>
-        feather.replace();
 
+    <!-- Firebase Module -->
+    <script type="module">
+        import { initAuthMonitor, loginWithGoogle, logoutUser } from './js/firebase-init.js';
+
+        // Initialize Authentication
         document.addEventListener('DOMContentLoaded', () => {
-            renderOrdersList();
+            feather.replace();
+
+            initAuthMonitor((user) => {
+                if (user) {
+                    // User is logged in
+                    renderUserOrders(user);
+                } else {
+                    // User is NOT logged in
+                    showLoginScreen();
+                }
+            });
 
             // Modal Logic
             const modal = document.getElementById("orderModal");
             const span = document.getElementsByClassName("close-modal")[0];
 
-            span.onclick = function () {
-                modal.style.display = "none";
-            }
-
-            window.onclick = function (event) {
-                if (event.target == modal) {
-                    modal.style.display = "none";
-                }
-            }
+            if (span) span.onclick = function () { modal.style.display = "none"; }
+            window.onclick = function (event) { if (event.target == modal) modal.style.display = "none"; }
         });
 
-        function renderOrdersList() {
+        // Make functions user-accessible
+        window.handleLogin = loginWithGoogle;
+        window.handleLogout = logoutUser;
+
+        function showLoginScreen() {
+            document.getElementById('userProfile').style.display = 'none';
             const ordersContainer = document.getElementById('ordersList');
-            const orders = JSON.parse(localStorage.getItem('quintOrders')) || [];
 
-            // --- POPULATE PROFILE ---
-            if (orders.length > 0) {
-                // Get latest order for profile info
-                const latest = orders[orders.length - 1]; // Last added is latest
-                const customer = latest.customerInfo;
+            ordersContainer.innerHTML = `
+                <div style="text-align: center; padding: 4rem;">
+                    <div style="width: 80px; height: 80px; background: #f0f0f0; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #555;">
+                        <i data-feather="lock"></i>
+                    </div>
+                    <h2 style="margin-bottom: 1rem;">Login to view your orders</h2>
+                    <p style="color: #777; margin-bottom: 2rem;">Sign in to access your order history, profile, and tracking.</p>
+                    <button class="btn btn-primary" onclick="handleLogin()">
+                        <span style="display:flex; align-items:center; gap:0.5rem;">
+                            Login with Google
+                        </span>
+                    </button>
+                </div>
+            `;
+            feather.replace();
+        }
 
-                document.getElementById('userProfile').style.display = 'block';
-                document.getElementById('profileName').textContent = customer.firstName + ' ' + customer.lastName;
-                document.getElementById('profileEmail').textContent = customer.email;
-                document.getElementById('profileLocation').textContent = `${customer.city}, ${customer.state}`;
+        function renderUserOrders(user) {
+            const ordersContainer = document.getElementById('ordersList');
+
+            // Populate Profile from Google Data
+            document.getElementById('userProfile').style.display = 'block';
+            document.getElementById('profileName').textContent = user.displayName;
+            document.getElementById('profileEmail').textContent = user.email;
+            document.getElementById('profileLocation').innerHTML = `<button onclick="handleLogout()" style="background:none; border:none; text-decoration:underline; color:red; cursor:pointer;">Logout</button>`;
+
+            // Custom Avatar if available
+            if (user.photoURL) {
+                const avatarDiv = document.querySelector('#userProfile i').parentElement;
+                avatarDiv.innerHTML = `<img src="${user.photoURL}" style="width:100%; height:100%; border-radius:50%;">`;
             }
-            // ------------------------
+
+            // Load Orders specific to this User UID
+            const storageKey = `quintOrders_${user.uid}`;
+            const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
 
             if (orders.length === 0) {
                 ordersContainer.innerHTML = `
                     <div style="text-align: center; padding: 4rem;">
                         <i data-feather="shopping-bag" style="width: 48px; height: 48px; color: #ddd; margin-bottom: 1rem;"></i>
-                        <h3 style="margin-bottom: 1rem;">No orders yet</h3>
-                        <p style="color: #777; margin-bottom: 2rem;">Looks like you haven't bought anything yet.</p>
+                        <h3 style="margin-bottom: 1rem;">No orders found</h3>
+                        <p style="color: #777; margin-bottom: 2rem;">Hi ${user.displayName.split(' ')[0]}, you haven't placed any orders with this account yet.</p>
                         <a href="shop.html" class="btn btn-primary">Start Shopping</a>
                     </div>
                 `;
@@ -361,7 +394,7 @@
                                 ${imagesHTML}
                             </div>
                             <div style="text-align: right;">
-                                <button class="btn btn-outline" onclick="viewOrderDetails(${index})">View Details & Track</button>
+                                <button class="btn btn-outline" onclick="window.currentOrders = JSON.parse(localStorage.getItem('${storageKey}')).reverse(); viewOrderDetails(${index})">View Details & Track</button>
                             </div>
                         </div>
                     </div>
@@ -369,14 +402,14 @@
             });
 
             ordersContainer.innerHTML = html;
+            feather.replace();
         }
 
-        function viewOrderDetails(index) {
-            const orders = JSON.parse(localStorage.getItem('quintOrders')) || [];
-            // Remember we reversed the list for display, so we must access the correct index from the original reversed array conceptually
-            // Actually, simplest is to just reverse the copy again to match
-            const sortedOrders = [...orders].reverse();
-            const order = sortedOrders[index];
+        // Global function for modal to access
+        window.viewOrderDetails = function (index) {
+            // Use the orders we loaded into the global variable to ensure consistency
+            const order = window.currentOrders[index];
+            if (!order) return;
 
             const modalBody = document.getElementById('modalBody');
 
@@ -403,7 +436,7 @@
                         <strong style="font-size: 1.2rem;">${order.orderId}</strong>
                     </div>
                     <div style="text-align: right;">
-                         <button class="btn btn-primary" onclick="alert('Tracking functionality coming soon! You will receive updates via email.')">Track Package</button>
+                         <button class="btn btn-primary" onclick="alert('Tracking functionality requires a shipping partner integration.')">Track Package</button>
                     </div>
                 </div>
 

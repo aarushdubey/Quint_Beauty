@@ -42,7 +42,8 @@
 
             <div class="nav-icons flex">
                 <a href="#" aria-label="Search"><i data-feather="search"></i></a>
-                <a href="orders.html" aria-label="My Orders" style="margin-right: 0.5rem;"><i data-feather="user"></i></a> <a href="cart.html" aria-label="Cart" class="cart-icon">
+                <a href="orders.html" aria-label="My Orders" style="margin-right: 0.5rem;"><i
+                        data-feather="user"></i></a> <a href="cart.html" aria-label="Cart" class="cart-icon">
                     <i data-feather="shopping-bag"></i>
                     <span class="cart-count">0</span>
                 </a>
@@ -210,6 +211,23 @@
         feather.replace();
     </script>
     <script src="js/main.js?v=1.1"></script>
+    <!-- Firebase Global Init -->
+    <script type="module">
+        import { initAuthMonitor } from './js/firebase-init.js';
+
+        // This ensures saving orders works with the correct user context
+        // and can be expanded to update the header user icon (e.g. show avatar)
+        document.addEventListener('DOMContentLoaded', () => {
+            initAuthMonitor((user) => {
+                const userIcon = document.querySelector('a[aria-label="My Orders"] i');
+                if (user && userIcon) {
+                    // Visual indicator that user is logged in (optional)
+                    userIcon.style.color = 'black';
+                    userIcon.style.fill = '#dbdbdb';
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

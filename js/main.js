@@ -565,10 +565,20 @@ function handlePaymentFailure(response) {
     alert(`Payment Failed!\n\nError: ${errorDescription}\nReason: ${errorReason}\n\nPlease try again.`);
 }
 
-// Save order to history (optional feature)
+// Save order to history (Supports User Specific Storage)
 function saveOrderToHistory(orderData) {
-    const orders = JSON.parse(localStorage.getItem('quintOrders')) || [];
+    let storageKey = 'quintOrders'; // Default guest storage
+
+    // Check if we have a logged-in user (set by firebase-init.js)
+    if (window.currentUser && window.currentUser.uid) {
+        storageKey = `quintOrders_${window.currentUser.uid}`;
+        console.log(`Saving order to user storage: ${storageKey}`);
+    } else {
+        console.log("Saving order to guest storage");
+    }
+
+    const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
     orders.push(orderData);
-    localStorage.setItem('quintOrders', JSON.stringify(orders));
+    localStorage.setItem(storageKey, JSON.stringify(orders));
 }
 
