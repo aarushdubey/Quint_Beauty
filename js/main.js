@@ -571,6 +571,8 @@ async function handlePaymentSuccess(response, formData, cart, totalAmount) {
         customer_name: formData.firstName
     };
 
+    console.log("Email params being sent:", emailParams);
+
     emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
         .then(function () {
             console.log('Email sent successfully!');
