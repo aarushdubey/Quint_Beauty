@@ -182,6 +182,74 @@
     </footer>
     <script src="js/main.js?v=1.1"></script>
     <script>feather.replace();</script>
+
+    <!-- Firebase Restriction & Auto-Fill -->
+    <script type="module">
+        import { initAuthMonitor, loginWithGoogle } from './js/firebase-init.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initially hide the checkout form until auth status is known
+            const checkoutSection = document.querySelector('.container.checkout-grid');
+            if (checkoutSection) checkoutSection.style.display = 'none';
+
+            // Show a temporary loading spinner
+            const loaderFn = document.createElement('div');
+            loaderFn.id = 'checkout-loader';
+            loaderFn.innerHTML = '<div style="text-align:center; padding:4rem;">Loading...</div>';
+            document.querySelector('.section').appendChild(loaderFn);
+
+            initAuthMonitor((user) => {
+                const loader = document.getElementById('checkout-loader');
+                if (loader) loader.remove();
+
+                if (user) {
+                    // 1. User IS Logged In -> Show Form
+                    if (checkoutSection) checkoutSection.style.display = 'grid'; // Restore grid layout
+
+                    // 2. Auto-Fill Email & Name
+                    const emailField = document.getElementById('email');
+                    const nameField = document.getElementById('firstName'); // We'll put full name in first name for now or split it
+
+                    if (emailField && !emailField.value) {
+                        emailField.value = user.email;
+                        emailField.readOnly = true; // Lock email to match account
+                        emailField.style.backgroundColor = '#f9f9f9';
+                    }
+                    if (nameField && !nameField.value && user.displayName) {
+                        // specialized logic to try and split name
+                        const names = user.displayName.split(' ');
+                        nameField.value = names[0];
+                        if (names.length > 1 && document.getElementById('lastName')) {
+                            document.getElementById('lastName').value = names.slice(1).join(' ');
+                        }
+                    }
+
+                } else {
+                    // 3. User is NOT Logged In -> Show Login Prompt
+                    const section = document.querySelector('.section');
+                    section.innerHTML = `
+                        <div class="container" style="max-width:500px; margin: 4rem auto; text-align: center; background: #fff; padding: 3rem; border: 1px solid #eee; border-radius: 8px;">
+                            <div style="width: 60px; height: 60px; background: #f0f0f0; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; color: #555;">
+                                <i data-feather="lock"></i>
+                            </div>
+                            <h2 style="margin-bottom: 1rem;">Checkout</h2>
+                            <p style="color: #666; margin-bottom: 2rem;">Please login to complete your purchase and save your order history.</p>
+                            <button id="checkoutLoginBtn" class="btn btn-primary" style="width:100%;">
+                                Login with Google
+                            </button>
+                            <div style="margin-top: 1.5rem;">
+                                <a href="cart.html" style="font-size: 0.9rem; color: #666; text-decoration: underline;">Return to Cart</a>
+                            </div>
+                        </div>
+                    `;
+                    feather.replace();
+
+                    // Attach event listener
+                    document.getElementById('checkoutLoginBtn').addEventListener('click', loginWithGoogle);
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
