@@ -611,6 +611,10 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
         const fileInput = document.getElementById('productImageFile');
         const imageFile = fileInput?.files[0];
 
+        console.log('File input element:', fileInput);
+        console.log('Image file:', imageFile);
+        console.log('Files array:', fileInput?.files);
+
         if (imageFile) {
             // New image selected - upload it
             if (IMGBB_API_KEY === 'YOUR_IMGBB_API_KEY_HERE') {
@@ -623,10 +627,13 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
         } else {
             // No new image - check if editing existing product with image
             const hiddenImageUrl = document.getElementById('productImage').value;
+            console.log('Hidden image URL:', hiddenImageUrl);
             if (hiddenImageUrl && hiddenImageUrl !== 'pending_upload') {
                 imageUrl = hiddenImageUrl;
             }
         }
+
+        console.log('Final imageUrl:', imageUrl);
 
         if (!imageUrl) {
             alert('Please upload a product image');
