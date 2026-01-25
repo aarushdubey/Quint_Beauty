@@ -199,54 +199,66 @@
                 </div>
             </div>
 
-            <!-- Details -->
-            <div class="product-details reveal delay-100">
-                <div class="uppercase"
-                    style="font-size: 0.8rem; letter-spacing: 0.1rem; color: #888; margin-bottom: 0.5rem;">Eyes</div>
-                <h1>Intense Black Kajal</h1>
-                <div class="price">₹2.00</div>
-
-                <p style="margin-bottom: 2rem; color: #555;">
-                    Define your eyes with our ultra-pigmented, long-lasting kajal.
-                    Smudge-proof, waterproof, and enriched with Vitamin E for a smooth glide application.
-                    Perfect for creating bold, dramatic looks or subtle definition.
+            <!-- Product Details -->
+            <div class="product-details fade-in-up delay-100">
+                <p class="breadcrumbs" style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">
+                    <a href="index.html" style="color: #666;">Home</a> / <a href="shop.html"
+                        style="color: #666;">Shop</a> / <span style="color: #000;">Product Details</span>
                 </p>
 
+                <h1>Loading...</h1>
+                <p class="price"></p>
+
+                <p style="line-height: 1.6; margin-bottom: 2rem; color: #555;">
+                    <!-- Description will be loaded here -->
+                </p>
+
+                <!-- Color Selection (Hidden for now as it's not dynamic yet) -->
+                <!-- 
                 <div class="variant-selector">
-                    <p style="margin-bottom: 0.5rem; font-size: 0.9rem;">Shade: <strong>Pitch Black</strong></p>
-                    <div class="flex">
-                        <span class="color-opt selected" style="background: #000;"></span>
-                        <!-- <span class="color-opt" style="background: #4B3621;"></span> -->
+                    <p style="font-weight: 500; margin-bottom: 0.5rem;">Color: Intense Black</p>
+                    <div class="color-opt active" style="background: #000;"></div>
+                </div>
+                -->
+
+                <div class="actions flex" style="gap: 1rem; margin-bottom: 2rem;">
+                    <div class="qty-selector flex">
+                        <button onclick="document.getElementById('quantity').stepDown()">-</button>
+                        <input type="number" id="quantity" value="1" min="1" max="10" readonly>
+                        <button onclick="document.getElementById('quantity').stepUp()">+</button>
                     </div>
+                    <button class="btn btn-primary add-to-cart" style="flex: 1;">ADD TO CART</button>
                 </div>
 
-                <div class="add-to-cart-section">
-                    <input type="number" value="1" min="1" class="qty-input">
-                    <button class="btn btn-primary add-to-cart-btn" style="flex: 1;">Add to Cart</button>
-                </div>
+                <div id="stockStatus" style="margin-bottom: 1rem; font-size: 0.9rem; color: #666;"></div>
 
-                <div class="tabs">
-                    <div class="tab-headers">
-                        <button class="tab-btn active">Description</button>
-                        <button class="tab-btn">Ingredients</button>
-                        <button class="tab-btn">How to Use</button>
-                    </div>
-                    <div class="tab-content">
-                        <p style="color: #666; font-size: 0.95rem;">
-                            <strong>Deep pigmentation in a single stroke.</strong><br><br>
-                            Our detailed formula ensures 12-hour wear without smudging. Safe for contact lens wearers
-                            and ophthalmologically tested.
-                            The creamy texture sets to a matte finish within seconds.
+                <div class="product-tabs" style="border-top: 1px solid #ddd; padding-top: 2rem;">
+                    <details open>
+                        <summary style="cursor: pointer; font-weight: 500; margin-bottom: 1rem;">Description</summary>
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <!-- Detailed description can go here -->
                         </p>
-                        <ul style="margin-top: 1rem;color: #666; list-style: disc; padding-left: 1.2rem;">
-                            <li>Waterproof & Smudge-proof</li>
-                            <li>Enriched with Vitamin E</li>
-                            <li>Paraben-free</li>
-                            <li>Vegan & Cruelty-free</li>
-                        </ul>
-                    </div>
+                    </details>
+                    <details>
+                        <summary style="cursor: pointer; font-weight: 500; margin-bottom: 1rem;">Ingredients</summary>
+                        <p style="color: #666; font-size: 0.9rem;">
+                            Isododecane, Synthetic Wax, Hydrogenated Polydicyclopentadiene, PEG/PPG-18/18 Dimethicone,
+                            Polybutene, Glyceryl Tribehenate/Isostearate/Eicosandioate, Nylon-12, Polyethylene,
+                            Perfluorononyl Dimethicone, Polyglyceryl-4 Diisostearate/Polyhydroxystearate/Sebacate,
+                            Synthetic
+                            Beeswax.
+                        </p>
+                    </details>
+                    <details>
+                        <summary style="cursor: pointer; font-weight: 500; margin-bottom: 1rem;">How to Use</summary>
+                        <p style="color: #666; font-size: 0.9rem;">
+                            Apply along the waterline or lash line. For a smokey effect, smudge immediately after
+                            application.
+                        </p>
+                    </details>
                 </div>
             </div>
+        </div>
 
         </div>
     </section>
@@ -337,6 +349,7 @@
         feather.replace();
     </script>
     <script src="js/main.js?v=1.2"></script>
+    <script type="module" src="js/product-details.js"></script>
     <script>
         function changeImage(element, src) {
             document.getElementById('mainImg').src = src;
