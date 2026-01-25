@@ -541,40 +541,48 @@ function handlePaymentSuccess(response, formData, cart, totalAmount) {
         status: 'paid'
     };
 
-    // Save to history (permanent)
-    saveOrderToHistory(orderDetails);
+    // --- 1. SAVE ORDER IMMEDIATELY (Critical Step) ---
+    try {
+        // Save to history (permanent)
+        saveOrderToHistory(orderDetails);
+        // Save to temp storage for confirmation page
+        localStorage.setItem('quintLastOrder', JSON.stringify(orderDetails));
+        // Clear the cart
+        localStorage.removeItem('quintCart');
+        console.log("Order saved locally successfully.");
+    } catch (e) {
+        console.error("CRITICAL: Failed to save order locally", e);
+        alert("Payment successful but failed to save order locally. Please copy your Payment ID: " + paymentId);
+    }
 
-    // Save to temp storage for confirmation page
-    localStorage.setItem('quintLastOrder', JSON.stringify(orderDetails));
-
-    // Clear the cart
-    localStorage.removeItem('quintCart');
-
-    // --- GENERATE EMAIL HTML FOR ITEMS ---
+    // --- 2. GENERATE EMAIL HTML FOR ITEMS ---
     let itemsHTML = '';
-    cart.forEach(item => {
-        itemsHTML += `
-            <table style="width: 100%; border-collapse: collapse">
-                <tr style="vertical-align: top">
-                  <td style="padding: 12px 0;">
-                    <strong style="font-size:14px; display:block;">${item.name}</strong>
-                    <div style="font-size: 13px; color: #888;">Qty: ${item.quantity}</div>
-                  </td>
-                  <td style="padding: 12px 0; text-align:right; white-space: nowrap">
-                    <strong>₹${item.price}</strong>
-                  </td>
-                </tr>
-            </table>`;
-    });
+    try {
+        cart.forEach(item => {
+            itemsHTML += `
+                <table style="width: 100%; border-collapse: collapse">
+                    <tr style="vertical-align: top">
+                      <td style="padding: 12px 0;">
+                        <strong style="font-size:14px; display:block;">${item.name}</strong>
+                        <div style="font-size: 13px; color: #888;">Qty: ${item.quantity}</div>
+                      </td>
+                      <td style="padding: 12px 0; text-align:right; white-space: nowrap">
+                        <strong>₹${item.price}</strong>
+                      </td>
+                    </tr>
+                </table>`;
+        });
+    } catch (e) { console.error("Error generating email HTML", e); }
 
-    // --- SEND EMAIL CONFIRMATION ---
+    // --- 3. SEND EMAIL CONFIRMATION (Async) ---
+    console.log("Attempting to send email...");
     const emailParams = {
-        to_email: formData.email, // Ensure template has {{to_email}} in the "To" field
-        email: formData.email, // For the footer {{email}}
+        to_email: formData.email,
+        email: formData.email,
         order_id: orderDetails.orderId,
-        order_items_html: itemsHTML, // NEW: HTML string for items (Use triple braces {{{order_items_html}}} in template)
+        order_items_html: itemsHTML,
         "cost.shipping": "0.00",
-        "cost.tax": "0.00", // Inclusive
+        "cost.tax": "0.00",
         "cost.total": totalAmount.toFixed(2),
         customer_name: formData.firstName
     };
@@ -584,9 +592,11 @@ function handlePaymentSuccess(response, formData, cart, totalAmount) {
             console.log('Email sent successfully!');
             // Redirect to Order Confirmation Page
             window.location.href = 'order-confirmed.html';
-        }, function (error) {
-            console.error('Email failed to send...', error);
-            // Redirect anyway
+        })
+        .catch(function (error) {
+            console.error('Email FAILED to send:', error);
+            // Redirect anyway - do not block user
+            console.log("Redirecting despite email error...");
             window.location.href = 'order-confirmed.html';
         });
 }
