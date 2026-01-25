@@ -431,6 +431,7 @@ const IMGBB_API_KEY = '936f516a5f95c452991da863a0bc841d';
 
 // Track if image upload has been initialized
 let imageUploadInitialized = false;
+let currentImageFile = null; // Store the selected file here
 
 // Initialize drag & drop functionality
 function initializeImageUpload() {
@@ -501,6 +502,7 @@ function initializeImageUpload() {
         removeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             fileInput.value = '';
+            currentImageFile = null; // Clear stored file
             document.getElementById('productImage').value = '';
             document.getElementById('dropZoneContent').style.display = 'block';
             document.getElementById('imagePreview').style.display = 'none';
@@ -525,6 +527,10 @@ function handleImageFile(file) {
         return;
     }
 
+    // Store the file globally so we can access it during submit
+    currentImageFile = file;
+    console.log('File selected:', file.name);
+
     // Show preview
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -537,9 +543,6 @@ function handleImageFile(file) {
         fileNameDisplay.textContent = file.name;
         dropZoneContent.style.display = 'none';
         imagePreview.style.display = 'block';
-
-        // Set hidden field to indicate image is ready
-        document.getElementById('productImage').value = 'pending_upload';
     };
     reader.readAsDataURL(file);
 }
@@ -576,6 +579,7 @@ async function uploadImageToImgBB(file) {
 // Open Add Product Modal
 document.getElementById('addProductBtn')?.addEventListener('click', () => {
     editingProductId = null;
+    currentImageFile = null; // Clear any previous file
     document.getElementById('productModalTitle').textContent = 'Add New Product';
     document.getElementById('productSubmitText').textContent = 'Add Product';
     document.getElementById('productForm').reset();
@@ -598,6 +602,7 @@ document.getElementById('addProductBtn')?.addEventListener('click', () => {
 window.closeProductModal = function () {
     document.getElementById('productModal').classList.remove('active');
     editingProductId = null;
+    currentImageFile = null;
 };
 
 // Submit Product Form
@@ -610,15 +615,10 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
     try {
         let imageUrl = '';
 
-        // Check if new image is being uploaded
-        const fileInput = document.getElementById('productImageFile');
-        const imageFile = fileInput?.files[0];
+        // Use the stored currentImageFile instead of querying the file input
+        console.log('Stored image file:', currentImageFile);
 
-        console.log('File input element:', fileInput);
-        console.log('Image file:', imageFile);
-        console.log('Files array:', fileInput?.files);
-
-        if (imageFile) {
+        if (currentImageFile) {
             // New image selected - upload it
             if (IMGBB_API_KEY === 'YOUR_IMGBB_API_KEY_HERE') {
                 alert('Please configure your ImgBB API key in admin.js\n\nGet your free API key at: https://api.imgbb.com/');
@@ -626,12 +626,12 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
             }
 
             submitBtn.textContent = 'Uploading image...';
-            imageUrl = await uploadImageToImgBB(imageFile);
+            imageUrl = await uploadImageToImgBB(currentImageFile);
         } else {
             // No new image - check if editing existing product with image
             const hiddenImageUrl = document.getElementById('productImage').value;
             console.log('Hidden image URL:', hiddenImageUrl);
-            if (hiddenImageUrl && hiddenImageUrl !== 'pending_upload') {
+            if (hiddenImageUrl) { // No need to check for 'pending_upload' anymore
                 imageUrl = hiddenImageUrl;
             }
         }
