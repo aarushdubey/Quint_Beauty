@@ -528,11 +528,10 @@ function handlePaymentSuccess(response, formData, cart, totalAmount) {
     // 3. Update order status in your database
     // 4. Send confirmation email to customer
 
-    // For now, show success message and clear cart
-    alert(`Payment Successful! 🎉\n\nPayment ID: ${paymentId}\n\nThank you for your order!`);
+    // For now, clear the cart but waiting for redirect
 
-    // Save order details to localStorage for order history (optional)
-    saveOrderToHistory({
+    // Save current order for confirmation page
+    const orderDetails = {
         paymentId: paymentId,
         orderId: orderId || 'ORD-' + Date.now(),
         date: new Date().toISOString(),
@@ -540,15 +539,19 @@ function handlePaymentSuccess(response, formData, cart, totalAmount) {
         total: totalAmount,
         customerInfo: formData,
         status: 'paid'
-    });
+    };
+
+    // Save to history (permanent)
+    saveOrderToHistory(orderDetails);
+
+    // Save to temp storage for confirmation page
+    localStorage.setItem('quintLastOrder', JSON.stringify(orderDetails));
 
     // Clear the cart
     localStorage.removeItem('quintCart');
 
-    // Redirect to a success page or home
-    setTimeout(() => {
-        window.location.href = 'index.html?payment=success';
-    }, 2000);
+    // Redirect to Order Confirmation Page
+    window.location.href = 'order-confirmed.html';
 }
 
 // Handle payment failure

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmed | Quint Beauty</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .confirmation-container {
+            max-width: 800px;
+            margin: 4rem auto;
+            text-align: center;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+        }
+
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .order-details-box {
+            background: var(--color-bg-alt);
+            padding: 3rem;
+            margin-top: 3rem;
+            text-align: left;
+            border-radius: 8px;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .detail-group {
+            margin-bottom: 2rem;
+        }
+
+        .detail-group h4 {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+        }
+
+        .order-item {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1.5rem;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .order-info span {
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header id="header">
+        <div class="container header-inner flex-center">
+            <a href="index.html" class="logo">QUINT BEAUTY</a>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="container confirmation-container">
+            <div class="success-icon fade-in-up">
+                <i data-feather="check"></i>
+            </div>
+
+            <h1 class="fade-in-up delay-100" style="margin-bottom: 1rem;">Order Confirmed!</h1>
+            <p class="fade-in-up delay-200" style="color: #666; margin-bottom: 2rem;">Thank you for your purchase. We
+                have received your order and are getting it ready.</p>
+
+            <div id="orderDetails" class="order-details-box reveal delay-300" style="display: none;">
+                <div class="order-header">
+                    <div>
+                        <span style="display: block; font-size: 0.9rem; color: #666;">Order ID</span>
+                        <strong id="orderIdDisplay" style="font-size: 1.2rem;">#ORD-0000</strong>
+                    </div>
+                    <div>
+                        <span style="display: block; font-size: 0.9rem; color: #666;">Total Amount</span>
+                        <strong id="orderTotalDisplay" style="font-size: 1.2rem;">₹0.00</strong>
+                    </div>
+                </div>
+
+                <div class="grid"
+                    style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+                    <div class="detail-group">
+                        <h4>Shipping Address</h4>
+                        <p id="shippingAddressDisplay" style="line-height: 1.6;"></p>
+                    </div>
+                    <div class="detail-group">
+                        <h4>Payment Method</h4>
+                        <p>Razorpay Secure</p>
+                        <p id="transactionIdDisplay" style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;"></p>
+                    </div>
+                </div>
+
+                <div class="detail-group">
+                    <h4 style="border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Items
+                        Ordered</h4>
+                    <div id="orderItemsList">
+                        <!-- Items injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <p id="loadingMessage" style="margin-top: 2rem;">Loading order details...</p>
+
+            <div class="reveal delay-400" style="margin-top: 4rem;">
+                <a href="shop.html" class="btn btn-primary">Continue Shopping</a>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="margin-top: auto;">
+        <div class="container" style="text-align: center; font-size: 0.8rem; color: #666;">
+            &copy; 2025 QUINT BEAUTY All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        feather.replace();
+
+        // Populate Order Details
+        document.addEventListener('DOMContentLoaded', () => {
+            const lastOrderJSON = localStorage.getItem('quintLastOrder');
+
+            if (lastOrderJSON) {
+                const order = JSON.parse(lastOrderJSON);
+
+                // Show box, hide loading
+                document.getElementById('orderDetails').style.display = 'block';
+                document.getElementById('loadingMessage').style.display = 'none';
+
+                // Fill data
+                document.getElementById('orderIdDisplay').textContent = order.orderId;
+                document.getElementById('orderTotalDisplay').textContent = '₹' + parseFloat(order.total).toFixed(2);
+                document.getElementById('transactionIdDisplay').textContent = 'Transaction ID: ' + order.paymentId;
+
+                // Address
+                const customer = order.customerInfo;
+                document.getElementById('shippingAddressDisplay').innerHTML = `
+                    <strong>${customer.firstName} ${customer.lastName}</strong><br>
+                    ${customer.address}<br>
+                    ${customer.city}, ${customer.state} ${customer.zipCode}<br>
+                    ${customer.email}
+                `;
+
+                // Items
+                const itemsContainer = document.getElementById('orderItemsList');
+                let itemsHTML = '';
+
+                order.items.forEach(item => {
+                    itemsHTML += `
+                        <div class="order-item">
+                            <img src="${item.image}" alt="${item.name}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 4px;">
+                            <div class="order-info">
+                                <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.2rem;">${item.name}</strong>
+                                <span style="color: #666;">Qty: ${item.quantity}</span>
+                                <span>₹${item.price}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                itemsContainer.innerHTML = itemsHTML;
+
+            } else {
+                // If no order found (direct access), redirect home
+                document.querySelector('.confirmation-container').innerHTML = `
+                    <h2>No recent order found</h2>
+                    <p>Redirecting you to home page...</p>
+                `;
+                setTimeout(() => window.location.href = 'index.html', 2000);
+            }
+        });
+    </script>
+</body>
+
+</html>
