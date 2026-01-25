@@ -189,9 +189,27 @@
 
     <section class="section">
         <div class="container orders-container">
-            <h1 class="page-title fade-in-up">My Orders</h1>
+            <h1 class="page-title fade-in-up">My Account</h1>
 
-            <div id="ordersList" class="reveal">
+            <!-- User Profile Section -->
+            <div id="userProfile" class="order-card fade-in-up"
+                style="display: none; padding: 2rem; margin-bottom: 3rem; background: #fff;">
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <div
+                        style="width: 80px; height: 80px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #555;">
+                        <i data-feather="user"></i>
+                    </div>
+                    <div>
+                        <h2 id="profileName" style="margin-bottom: 0.2rem;">Guest User</h2>
+                        <p id="profileEmail" style="color: #666; margin-bottom: 0.2rem;">No email found</p>
+                        <p id="profileLocation" style="color: #999; font-size: 0.9rem;">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="fade-in-up delay-100" style="margin-bottom: 1.5rem;">Order History</h3>
+
+            <div id="ordersList" class="reveal delay-200">
                 <!-- Orders will be injected here -->
                 <div style="text-align: center; color: #777; padding: 4rem;">
                     Loading your orders...
@@ -277,6 +295,19 @@
         function renderOrdersList() {
             const ordersContainer = document.getElementById('ordersList');
             const orders = JSON.parse(localStorage.getItem('quintOrders')) || [];
+
+            // --- POPULATE PROFILE ---
+            if (orders.length > 0) {
+                // Get latest order for profile info
+                const latest = orders[orders.length - 1]; // Last added is latest
+                const customer = latest.customerInfo;
+
+                document.getElementById('userProfile').style.display = 'block';
+                document.getElementById('profileName').textContent = customer.firstName + ' ' + customer.lastName;
+                document.getElementById('profileEmail').textContent = customer.email;
+                document.getElementById('profileLocation').textContent = `${customer.city}, ${customer.state}`;
+            }
+            // ------------------------
 
             if (orders.length === 0) {
                 ordersContainer.innerHTML = `
