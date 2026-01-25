@@ -633,6 +633,38 @@ async function saveOrderToHistory(orderData) {
 
     const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
     orders.push(orderData);
+
     localStorage.setItem(storageKey, JSON.stringify(orders));
 }
+
+// --- AUTO-FIX: Force update cart prices to match current DB ---
+(function fixCartPrices() {
+    try {
+        const cart = JSON.parse(localStorage.getItem('quintCart')) || [];
+        let updated = false;
+
+        cart.forEach(item => {
+            // Find product by matching name
+            for (const key in productsDB) {
+                if (productsDB[key].name === item.name) {
+                    // Force update price
+                    if (item.price !== productsDB[key].price) {
+                        console.log(`Fixing Price for ${item.name}: ${item.price} -> ${productsDB[key].price}`);
+                        item.price = productsDB[key].price;
+                        updated = true;
+                    }
+                }
+            }
+        });
+
+        if (updated) {
+            localStorage.setItem('quintCart', JSON.stringify(cart));
+            console.log("Cart prices auto-corrected.");
+            // If on cart page, reload to show changes
+            if (window.location.pathname.includes('cart.html')) {
+                setTimeout(() => window.location.reload(), 500);
+            }
+        }
+    } catch (e) { console.error("Error auto-fixing prices:", e); }
+})();
 
