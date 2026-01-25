@@ -427,7 +427,7 @@ function displayProducts() {
 // ========== IMAGE UPLOAD HANDLING ==========
 
 // ImgBB API Key (Get yours free at: https://api.imgbb.com/)
-const IMGBB_API_KEY = 'YOUR_IMGBB_API_KEY_HERE'; // Replace with your actual key
+const IMGBB_API_KEY = '936f516a5f95c452991da863a0bc841d';
 
 // Drag & Drop Image Upload
 const dropZone = document.getElementById('dropZone');
