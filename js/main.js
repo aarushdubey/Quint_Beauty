@@ -550,8 +550,25 @@ function handlePaymentSuccess(response, formData, cart, totalAmount) {
     // Clear the cart
     localStorage.removeItem('quintCart');
 
-    // Redirect to Order Confirmation Page
-    window.location.href = 'order-confirmed.html';
+    // --- SEND EMAIL CONFIRMATION ---
+    const emailParams = {
+        to_email: formData.email,
+        customer_name: formData.firstName,
+        order_id: orderDetails.orderId,
+        amount: totalAmount,
+        message: "Thank you for shopping with Quint Beauty! Your order has been placed successfully."
+    };
+
+    emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
+        .then(function () {
+            console.log('Email sent successfully!');
+            // Redirect to Order Confirmation Page
+            window.location.href = 'order-confirmed.html';
+        }, function (error) {
+            console.error('Email failed to send...', error);
+            // Redirect anyway
+            window.location.href = 'order-confirmed.html';
+        });
 }
 
 // Handle payment failure
