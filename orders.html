@@ -324,31 +324,35 @@
         }
 
         function renderUserOrders(user) {
-            const ordersContainer = document.getElementById('ordersList');
+            try {
+                const ordersContainer = document.getElementById('ordersList');
 
-            // Populate Profile from Google Data
-            document.getElementById('userProfile').style.display = 'block';
-            document.getElementById('profileName').textContent = user.displayName;
-            document.getElementById('profileEmail').textContent = user.email;
-            document.getElementById('profileLocation').innerHTML = `<button onclick="handleLogout()" style="background:none; border:none; text-decoration:underline; color:red; cursor:pointer;">Logout</button>`;
+                // Populate Profile from Google Data
+                document.getElementById('userProfile').style.display = 'block';
+                document.getElementById('profileName').textContent = user.displayName;
+                document.getElementById('profileEmail').textContent = user.email;
+                document.getElementById('profileLocation').innerHTML = `<button onclick="handleLogout()" style="background:none; border:none; text-decoration:underline; color:red; cursor:pointer;">Logout</button>`;
 
-            // Custom Avatar if available
-            if (user.photoURL) {
-                const avatarDiv = document.querySelector('#userProfile i').parentElement;
-                avatarDiv.innerHTML = `<img src="${user.photoURL}" style="width:100%; height:100%; border-radius:50%;">`;
-            }
+                // Custom Avatar - Target the circle container directly
+                if (user.photoURL) {
+                    // We target the first div inside the flex container, which is the avatar circle
+                    const avatarContainer = document.querySelector('#userProfile > div > div:first-child');
+                    if (avatarContainer) {
+                        avatarContainer.innerHTML = `<img src="${user.photoURL}" style="width:100%; height:100%; border-radius:50%;">`;
+                    }
+                }
 
-            // Load Orders specific to this User UID
-            const storageKey = `quintOrders_${user.uid}`;
-            const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
+                // Load Orders specific to this User UID
+                const storageKey = `quintOrders_${user.uid}`;
+                const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
 
-            console.log("Orders found for user:", orders.length); // Debug log
+                console.log("Orders found for user:", orders.length); // Debug log
 
-            if (orders.length === 0) {
-                // Clear the loading message first
-                ordersContainer.innerHTML = '';
+                if (orders.length === 0) {
+                    // Clear the loading message first
+                    ordersContainer.innerHTML = '';
 
-                ordersContainer.innerHTML = `
+                    ordersContainer.innerHTML = `
                     <div style="text-align: center; padding: 4rem;">
                         <div style="margin-bottom: 1rem; color: #ddd;">
                             <i data-feather="shopping-bag" style="width: 48px; height: 48px;"></i>
@@ -358,24 +362,24 @@
                         <a href="shop.html" class="btn btn-primary">Start Shopping</a>
                     </div>
                 `;
-                setTimeout(() => feather.replace(), 100); // Small delay to ensuring DOM is ready
-                return;
-            }
+                    setTimeout(() => feather.replace(), 100); // Small delay to ensuring DOM is ready
+                    return;
+                }
 
-            // Sort by date new to old
-            orders.reverse();
+                // Sort by date new to old
+                orders.reverse();
 
-            let html = '';
+                let html = '';
 
-            orders.forEach((order, index) => {
-                const date = new Date(order.date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+                orders.forEach((order, index) => {
+                    const date = new Date(order.date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
 
-                let imagesHTML = '';
-                order.items.forEach(item => {
-                    imagesHTML += `<img src="${item.image}" alt="${item.name}" title="${item.name}">`;
-                });
+                    let imagesHTML = '';
+                    order.items.forEach(item => {
+                        imagesHTML += `<img src="${item.image}" alt="${item.name}" title="${item.name}">`;
+                    });
 
-                html += `
+                    html += `
                     <div class="order-card">
                         <div class="order-header">
                             <div class="order-meta">
@@ -406,10 +410,15 @@
                         </div>
                     </div>
                 `;
-            });
+                });
 
-            ordersContainer.innerHTML = html;
-            feather.replace();
+                ordersContainer.innerHTML = html;
+                feather.replace();
+            } catch (e) {
+                console.error("Error rendering orders:", e);
+                const ordersContainer = document.getElementById('ordersList');
+                if (ordersContainer) ordersContainer.innerHTML = '<div style="text-align:center; padding:4rem;"><p style="color:red; margin-bottom:1rem;">Something went wrong loading your orders.</p><button onclick="window.location.reload()" class="btn btn-outline">Try Again</button></div>';
+            }
         }
 
         // Global function for modal to access
