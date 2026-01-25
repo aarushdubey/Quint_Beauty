@@ -553,11 +553,15 @@ async function uploadImageToImgBB(file) {
         });
 
         const data = await response.json();
+        console.log('ImgBB response:', data);
 
         if (data.success) {
-            return data.data.url;
+            const imageUrl = data.data.display_url || data.data.url;
+            console.log('Image uploaded successfully:', imageUrl);
+            return imageUrl;
         } else {
-            throw new Error('Upload failed');
+            console.error('ImgBB upload failed:', data);
+            throw new Error('Upload failed: ' + (data.error?.message || 'Unknown error'));
         }
     } catch (error) {
         console.error('ImgBB upload error:', error);
@@ -634,6 +638,8 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
             image: imageUrl,
             updatedAt: new Date().toISOString()
         };
+
+        console.log('Saving product with data:', productData);
 
         if (editingProductId) {
             // Update existing product
