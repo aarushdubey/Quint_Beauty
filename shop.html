@@ -109,47 +109,8 @@
             </div>
 
             <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); row-gap: 3rem;">
-
-                <!-- Product 1 -->
-                <a href="product.html?id=kajal" class="product-card reveal">
-                    <div class="product-img-wrapper"
-                        style="background: #F9F7F5; height: 350px; display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 1rem;">
-                        <span class="tag"
-                            style="position: absolute; top: 1rem; left: 1rem; background: white; padding: 0.2rem 0.8rem; font-size: 0.8rem; z-index: 2;">New</span>
-                        <img src="assets/images/product-1.jpg" alt="Intense Black Kajal">
-                    </div>
-                    <div class="product-info">
-                        <h3 style="font-size: 1.1rem; margin-bottom: 0.3rem;">Intense Black Kajal</h3>
-                        <p style="color: var(--color-text-muted);">₹2.00</p>
-                    </div>
-                </a>
-
-                <!-- Product 2 -->
-                <a href="product.html?id=liquid-lipstick" class="product-card reveal delay-100">
-                    <div class="product-img-wrapper"
-                        style="background: #e8d1c5; height: 350px; display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 1rem;">
-                        <img src="https://images.unsplash.com/photo-1586495777744-4413f21062dc?q=80&w=2630&auto=format&fit=crop"
-                            alt="Quint Beauty Non Transfer Liquid Lipstick">
-                    </div>
-                    <div class="product-info">
-                        <h3 style="font-size: 1.1rem; margin-bottom: 0.3rem;">Non Transfer Liquid Lipstick</h3>
-                        <p style="color: var(--color-text-muted);">₹800.00</p>
-                    </div>
-                </a>
-
-                <!-- Product 3 -->
-                <a href="product.html?id=matte-lipstick" class="product-card reveal delay-200">
-                    <div class="product-img-wrapper"
-                        style="background: #fdfdfd; height: 350px; display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 1rem;">
-                        <img src="https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=2680&auto=format&fit=crop"
-                            alt="Creamy Charm Matte Lipstick">
-                    </div>
-                    <div class="product-info">
-                        <h3 style="font-size: 1.1rem; margin-bottom: 0.3rem;">Creamy Charm Matte Lipstick</h3>
-                        <p style="color: var(--color-text-muted);">₹1500.00</p>
-                    </div>
-                </a>
-
+                <!-- Products will be loaded dynamically from Firestore -->
+                <p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #999;">Loading products...</p>
             </div>
         </div>
     </section>
@@ -201,6 +162,7 @@
         feather.replace();
     </script>
     <script src="js/main.js?v=1.1"></script>
+    <script type="module" src="js/shop-products.js"></script>
 </body>
 
 </html>
