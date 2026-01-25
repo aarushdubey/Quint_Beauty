@@ -493,7 +493,7 @@ function getCheckoutFormData() {
         city: document.getElementById('city')?.value || '',
         zipCode: document.getElementById('zipCode')?.value || '',
         state: document.getElementById('state')?.value || '',
-        phone: document.getElementById('phone')?.value || '' // Optional
+        phone: document.getElementById('phone')?.value || ''
     };
 }
 
