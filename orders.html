@@ -342,16 +342,23 @@
             const storageKey = `quintOrders_${user.uid}`;
             const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
 
+            console.log("Orders found for user:", orders.length); // Debug log
+
             if (orders.length === 0) {
+                // Clear the loading message first
+                ordersContainer.innerHTML = '';
+
                 ordersContainer.innerHTML = `
                     <div style="text-align: center; padding: 4rem;">
-                        <i data-feather="shopping-bag" style="width: 48px; height: 48px; color: #ddd; margin-bottom: 1rem;"></i>
+                        <div style="margin-bottom: 1rem; color: #ddd;">
+                            <i data-feather="shopping-bag" style="width: 48px; height: 48px;"></i>
+                        </div>
                         <h3 style="margin-bottom: 1rem;">No orders found</h3>
                         <p style="color: #777; margin-bottom: 2rem;">Hi ${user.displayName.split(' ')[0]}, you haven't placed any orders with this account yet.</p>
                         <a href="shop.html" class="btn btn-primary">Start Shopping</a>
                     </div>
                 `;
-                feather.replace();
+                setTimeout(() => feather.replace(), 100); // Small delay to ensuring DOM is ready
                 return;
             }
 
