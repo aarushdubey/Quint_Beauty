@@ -60,6 +60,9 @@ export async function getUserOrdersFromCloud(userId) {
 window.saveOrderToCloud = saveOrderToCloud;
 window.getUserOrdersFromCloud = getUserOrdersFromCloud;
 
+// Export auth and db for admin dashboard
+export { auth, db };
+
 // Current User State (can be accessed globally)
 window.currentUser = null;
 
