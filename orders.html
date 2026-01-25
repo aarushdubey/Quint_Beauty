@@ -382,6 +382,9 @@
                 // Sort by date new to old
                 orders.reverse();
 
+                // Store orders globally for detail view
+                window.currentOrders = orders;
+
                 let html = '';
 
                 orders.forEach((order, index) => {
@@ -418,7 +421,7 @@
                                 ${imagesHTML}
                             </div>
                             <div style="text-align: right;">
-                                <button class="btn btn-outline" onclick="window.currentOrders = JSON.parse(localStorage.getItem('${storageKey}')).reverse(); viewOrderDetails(${index})">View Details & Track</button>
+                                <button class="btn btn-outline" onclick="viewOrderDetails(${index})">View Details & Track</button>
                             </div>
                         </div>
                     </div>
