@@ -565,9 +565,9 @@ async function handlePaymentSuccess(response, formData, cart, totalAmount) {
         email: formData.email,
         order_id: orderDetails.orderId,
         order_items_html: itemsHTML,
-        "cost.shipping": "0.00",
-        "cost.tax": "0.00",
-        "cost.total": totalAmount.toFixed(2),
+        cost_shipping: "0.00",
+        cost_tax: "0.00",
+        cost_total: totalAmount.toFixed(2),
         customer_name: formData.firstName
     };
 
