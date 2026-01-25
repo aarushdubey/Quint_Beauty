@@ -498,7 +498,7 @@ function getCheckoutFormData() {
 }
 
 // Handle successful payment
-function handlePaymentSuccess(response, formData, cart, totalAmount) {
+async function handlePaymentSuccess(response, formData, cart, totalAmount) {
     console.log('Payment successful!', response);
 
     // Payment details
@@ -528,7 +528,7 @@ function handlePaymentSuccess(response, formData, cart, totalAmount) {
     // --- 1. SAVE ORDER IMMEDIATELY (Critical Step) ---
     try {
         // Save to history (permanent)
-        saveOrderToHistory(orderDetails);
+        await saveOrderToHistory(orderDetails);
         // Save to temp storage for confirmation page
         localStorage.setItem('quintLastOrder', JSON.stringify(orderDetails));
         // Clear the cart

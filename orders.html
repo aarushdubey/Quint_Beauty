@@ -353,7 +353,7 @@
                 }
 
                 // Fallback to Local Storage if Cloud is empty (or failed)
-                if (productsDB && orders.length === 0) {
+                if (orders.length === 0) {
                     const storageKey = `quintOrders_${user.uid}`;
                     orders = JSON.parse(localStorage.getItem(storageKey)) || [];
                     console.log("Fetched from Local Backup:", orders.length);
