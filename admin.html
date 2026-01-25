@@ -276,10 +276,14 @@
                     </div>
 
                     <div style="margin-bottom: 2rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Image URL *</label>
-                        <input type="url" id="productImage" required placeholder="https://example.com/image.jpg"
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Product Image Filename
+                            *</label>
+                        <input type="text" id="productImage" required placeholder="product-name.jpg"
                             style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-family: var(--font-body);">
-                        <small style="color: #666; font-size: 0.85rem;">Enter the full URL of the product image</small>
+                        <small style="color: #666; font-size: 0.85rem; display: block; margin-top: 0.5rem;">
+                            📁 Upload your image to <code>/assets/images/products/</code> folder in GitHub, then enter
+                            the filename here (e.g., "lipstick-red.jpg")
+                        </small>
                     </div>
 
                     <div style="display: flex; gap: 1rem;">

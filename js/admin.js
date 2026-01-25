@@ -443,17 +443,32 @@ window.closeProductModal = function () {
 document.getElementById('productForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const productData = {
-        name: document.getElementById('productName').value,
-        description: document.getElementById('productDescription').value,
-        price: parseFloat(document.getElementById('productPrice').value),
-        stock: parseInt(document.getElementById('productStock').value),
-        category: document.getElementById('productCategory').value,
-        image: document.getElementById('productImage').value,
-        updatedAt: new Date().toISOString()
-    };
+    const submitBtn = document.getElementById('productSubmitText');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Saving...';
 
     try {
+        // Get image filename and construct full path
+        const imageFilename = document.getElementById('productImage').value.trim();
+        if (!imageFilename) {
+            alert('Please enter an image filename');
+            submitBtn.textContent = originalText;
+            return;
+        }
+
+        // Construct image URL (assumes image is in /assets/images/products/)
+        const imageUrl = `assets/images/products/${imageFilename}`;
+
+        const productData = {
+            name: document.getElementById('productName').value,
+            description: document.getElementById('productDescription').value,
+            price: parseFloat(document.getElementById('productPrice').value),
+            stock: parseInt(document.getElementById('productStock').value),
+            category: document.getElementById('productCategory').value,
+            image: imageUrl,
+            updatedAt: new Date().toISOString()
+        };
+
         if (editingProductId) {
             // Update existing product
             const productRef = doc(db, 'products', editingProductId);
@@ -472,6 +487,7 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
     } catch (error) {
         console.error('Error saving product:', error);
         alert('Error saving product: ' + error.message);
+        submitBtn.textContent = originalText;
     }
 });
 
