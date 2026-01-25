@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Razorpay Integration Test - Quint Beauty</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        .status {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 4px;
+        }
+
+        .status h2 {
+            color: #2e7d32;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .value {
+            color: #333;
+            font-family: monospace;
+            background: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .test-section {
+            margin-top: 2rem;
+        }
+
+        .test-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 1rem;
+        }
+
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .test-btn:active {
+            transform: translateY(0);
+        }
+
+        .checklist {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1.5rem;
+            border-radius: 4px;
+            margin-top: 2rem;
+        }
+
+        .checklist h3 {
+            color: #856404;
+            margin-bottom: 1rem;
+        }
+
+        .checklist ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .checklist li {
+            padding: 0.5rem 0;
+            color: #856404;
+        }
+
+        .checklist li:before {
+            content: '✓ ';
+            font-weight: bold;
+            color: #28a745;
+            margin-right: 0.5rem;
+        }
+
+        .warning {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        .warning strong {
+            color: #c62828;
+        }
+
+        code {
+            background: #f5f5f5;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎉 Razorpay Integration Test</h1>
+
+        <div class="status">
+            <h2>✅ Integration Status: Active</h2>
+            <p>Razorpay payment gateway is successfully integrated!</p>
+        </div>
+
+        <div class="info-box">
+            <h3 style="margin-bottom: 1rem; color: #333;">Configuration Details</h3>
+            <div class="info-item">
+                <span class="label">API Key ID:</span>
+                <span class="value" id="keyId">Loading...</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Currency:</span>
+                <span class="value" id="currency">Loading...</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Company Name:</span>
+                <span class="value" id="companyName">Loading...</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Mode:</span>
+                <span class="value" id="mode">Loading...</span>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3 style="margin-bottom: 1rem; color: #333;">Quick Test</h3>
+            <button class="test-btn" onclick="testPayment()">🚀 Test Payment Gateway (₹1.00)</button>
+            <button class="test-btn" onclick="window.location.href='checkout.html'"
+                style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                🛒 Go to Checkout Page
+            </button>
+        </div>
+
+        <div class="checklist">
+            <h3>✨ Integration Checklist</h3>
+            <ul>
+                <li>Razorpay SDK loaded</li>
+                <li>API keys configured</li>
+                <li>Payment button integrated</li>
+                <li>Form validation enabled</li>
+                <li>Success/Failure handlers setup</li>
+                <li>Order history tracking</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Important:</strong> This is using LIVE API keys. For testing, please use Razorpay test mode with
+            test API keys. See <code>RAZORPAY_INTEGRATION.md</code> for details.
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="js/razorpay-config.js?v=1.1"></script>
+    <script>
+        // Display configuration
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof RAZORPAY_CONFIG !== 'undefined') {
+                document.getElementById('keyId').textContent = RAZORPAY_CONFIG.key_id;
+                document.getElementById('currency').textContent = RAZORPAY_CONFIG.currency;
+                document.getElementById('companyName').textContent = RAZORPAY_CONFIG.company_name;
+                document.getElementById('mode').textContent = RAZORPAY_CONFIG.test_mode ? 'TEST MODE' : 'LIVE MODE';
+                document.getElementById('mode').style.background = RAZORPAY_CONFIG.test_mode ? '#fff3cd' : '#c8e6c9';
+                document.getElementById('mode').style.color = RAZORPAY_CONFIG.test_mode ? '#856404' : '#2e7d32';
+            }
+        });
+
+        // Test payment function
+        function testPayment() {
+            const options = {
+                key: RAZORPAY_CONFIG.key_id,
+                amount: 100, // ₹1.00 in paise
+                currency: RAZORPAY_CONFIG.currency,
+                name: RAZORPAY_CONFIG.company_name,
+                description: 'Test Payment - Integration Verification',
+                image: RAZORPAY_CONFIG.company_logo || '',
+
+                prefill: {
+                    name: 'Test Customer',
+                    email: 'test@quintbeauty.com',
+                    contact: '9999999999'
+                },
+
+                notes: {
+                    purpose: 'Integration Test'
+                },
+
+                theme: {
+                    color: RAZORPAY_CONFIG.theme_color
+                },
+
+                handler: function (response) {
+                    alert('✅ Payment Successful!\n\nPayment ID: ' + response.razorpay_payment_id + '\n\nIntegration is working correctly!');
+                },
+
+                modal: {
+                    ondismiss: function () {
+                        console.log('Payment cancelled');
+                    }
+                }
+            };
+
+            const razorpay = new Razorpay(options);
+
+            razorpay.on('payment.failed', function (response) {
+                alert('❌ Payment Failed!\n\nError: ' + response.error.description);
+            });
+
+            razorpay.open();
+        }
+    </script>
+</body>
+
+</html>

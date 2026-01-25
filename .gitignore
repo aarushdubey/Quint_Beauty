@@ -70,3 +70,10 @@ Thumbs.db
 # Project specific
 .local/
 private/
+
+# API Keys & Secrets
+rzp-key.csv
+*-key.csv
+*.key
+secrets/
+config/keys.js

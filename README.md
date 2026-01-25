@@ -48,7 +48,6 @@ This is a fully functional e-commerce website built with vanilla HTML, CSS, and 
 
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
 - **Architecture**: Client-side rendering
-- **Deployment**: Render
 - **Version Control**: Git & GitHub
 
 ---
@@ -70,7 +69,6 @@ Quint_Beauty/
 ├── contact.html         # Contact form page
 ├── cart.html            # Shopping cart page
 ├── checkout.html        # Checkout page
-├── _redirects           # Routing configuration for Render
 └── README.md            # This file
 ```
 
@@ -255,18 +253,6 @@ Quint Beauty offers a curated selection of premium makeup products:
 - Clear navigation
 - Product images with zoom
 - Intuitive checkout flow
-
----
-
-## Deployment
-
-The website is currently deployed on **Render** at [quintbeauty.com](https://quintbeauty.com/)
-
-### Deployment Configuration
-- Platform: Render
-- Build Command: None (Static site)
-- Start Command: None (Static site)
-- Routing: Configured via `_redirects` file
 
 ---
 
