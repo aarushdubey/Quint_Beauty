@@ -5,7 +5,7 @@ import { getFirestore, collection, addDoc, query, where, getDocs, orderBy } from
 // Your web app's Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyC8d9OfIXC6J6EFIAqVZgyVm2S3yujLMk8",
-    authDomain: "quint-beauty.firebaseapp.com",
+    authDomain: "quintbeauty.com",
     projectId: "quint-beauty",
     storageBucket: "quint-beauty.firebasestorage.app",
     messagingSenderId: "182771986293",
