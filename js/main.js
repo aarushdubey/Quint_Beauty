@@ -4,7 +4,7 @@
 const productsDB = {
     'kajal': {
         name: "Intense Black Kajal",
-        price: "1200.00",
+        price: "10.00",
         image: "assets/images/product-1.jpg",
         desc: "Define your eyes with our ultra-pigmented, long-lasting kajal. Smudge-proof and waterproof."
     },
@@ -212,13 +212,13 @@ function setupAddToCartButtons() {
 
                 product = {
                     name: title ? title.innerText.trim() : 'Detailed Product',
-                    price: price ? price.innerText.replace(/[^0-9.]/g, '') : '1200.00',
+                    price: price ? price.innerText.replace(/[^0-9.]/g, '') : '10.00',
                     image: img ? img.src : '',
                     quantityToAdd: addedQty
                 };
             } else {
                 // Final fallback
-                product = { name: "Quint Beauty Product", price: "1200.00", image: "assets/images/product-1.jpg" };
+                product = { name: "Quint Beauty Product", price: "10.00", image: "assets/images/product-1.jpg" };
             }
 
             addToCart(product, product.quantityToAdd || 1);
@@ -381,10 +381,175 @@ function renderCheckoutPage() {
             <h4 style="margin-bottom: 1rem;">Payment</h4>
             <p style="font-size: 0.8rem; color: #666; margin-bottom: 1rem;">Transactions are secure and encrypted.</p>
 
-            <button class="btn btn-primary" style="width: 100%;">Pay Now</button>
+            <button id="razorpayPayBtn" class="btn btn-primary" style="width: 100%;">Pay Now</button>
             <p style="text-align: center; margin-top: 1rem; font-size: 0.8rem; color: #888;">Powered by Razorpay</p>
         </div>
     `;
 
     summaryBox.innerHTML = summaryHTML;
+
+    // Attach Razorpay payment handler
+    const payBtn = document.getElementById('razorpayPayBtn');
+    if (payBtn) {
+        payBtn.onclick = (e) => {
+            e.preventDefault();
+            initiateRazorpayPayment(total);
+        };
+    }
 }
+
+// Razorpay Payment Integration
+function initiateRazorpayPayment(totalAmount) {
+    // Validate form first
+    const form = document.getElementById('checkoutForm');
+    if (!form) {
+        alert('Checkout form not found!');
+        return;
+    }
+
+    // Check if form is valid
+    if (!form.checkValidity()) {
+        // Trigger HTML5 validation UI
+        form.reportValidity();
+        return;
+    }
+
+    // Get form data
+    const formData = getCheckoutFormData();
+
+    // Convert total to paise (Razorpay expects amount in smallest currency unit)
+    const amountInPaise = Math.round(totalAmount * 100);
+
+    // Get cart items for order notes
+    const cart = getCart();
+    const itemsList = cart.map(item => `${item.name} (${item.quantity}x)`).join(', ');
+
+    // Razorpay options
+    const options = {
+        key: RAZORPAY_CONFIG.key_id,
+        amount: amountInPaise, // Amount in paise
+        currency: RAZORPAY_CONFIG.currency,
+        name: RAZORPAY_CONFIG.company_name,
+        description: 'Order for ' + itemsList,
+        image: RAZORPAY_CONFIG.company_logo || '', // Your logo URL
+
+        // Prefill customer information
+        prefill: {
+            name: formData.firstName + ' ' + formData.lastName,
+            email: formData.email,
+            contact: formData.phone || '' // Add phone field if you have one
+        },
+
+        // Shipping address
+        notes: {
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+            zipCode: formData.zipCode,
+            items: itemsList
+        },
+
+        theme: {
+            color: RAZORPAY_CONFIG.theme_color
+        },
+
+        // Payment success handler
+        handler: function (response) {
+            handlePaymentSuccess(response, formData, cart, totalAmount);
+        },
+
+        // Payment modal closed
+        modal: {
+            ondismiss: function () {
+                console.log('Payment cancelled by user');
+                // You can show a message or handle cancellation
+            }
+        }
+    };
+
+    // Create Razorpay instance and open checkout
+    try {
+        const razorpayInstance = new Razorpay(options);
+
+        // Handle payment failure
+        razorpayInstance.on('payment.failed', function (response) {
+            handlePaymentFailure(response);
+        });
+
+        razorpayInstance.open();
+    } catch (error) {
+        console.error('Razorpay initialization error:', error);
+        alert('Payment gateway could not be initialized. Please try again.');
+    }
+}
+
+// Get checkout form data
+function getCheckoutFormData() {
+    return {
+        email: document.getElementById('email')?.value || '',
+        firstName: document.getElementById('firstName')?.value || '',
+        lastName: document.getElementById('lastName')?.value || '',
+        address: document.getElementById('address')?.value || '',
+        city: document.getElementById('city')?.value || '',
+        zipCode: document.getElementById('zipCode')?.value || '',
+        state: document.getElementById('state')?.value || '',
+        phone: document.getElementById('phone')?.value || '' // Optional
+    };
+}
+
+// Handle successful payment
+function handlePaymentSuccess(response, formData, cart, totalAmount) {
+    console.log('Payment successful!', response);
+
+    // Payment details
+    const paymentId = response.razorpay_payment_id;
+    const orderId = response.razorpay_order_id; // If you're using order API
+    const signature = response.razorpay_signature; // If you're using order API
+
+    // In a real application, you should:
+    // 1. Send this data to your backend server
+    // 2. Verify the payment signature on the server
+    // 3. Update order status in your database
+    // 4. Send confirmation email to customer
+
+    // For now, show success message and clear cart
+    alert(`Payment Successful! 🎉\n\nPayment ID: ${paymentId}\n\nThank you for your order!`);
+
+    // Save order details to localStorage for order history (optional)
+    saveOrderToHistory({
+        paymentId: paymentId,
+        orderId: orderId || 'ORD-' + Date.now(),
+        date: new Date().toISOString(),
+        items: cart,
+        total: totalAmount,
+        customerInfo: formData,
+        status: 'paid'
+    });
+
+    // Clear the cart
+    localStorage.removeItem('quintCart');
+
+    // Redirect to a success page or home
+    setTimeout(() => {
+        window.location.href = 'index.html?payment=success';
+    }, 2000);
+}
+
+// Handle payment failure
+function handlePaymentFailure(response) {
+    console.error('Payment failed:', response);
+
+    const errorCode = response.error.code;
+    const errorDescription = response.error.description;
+    const errorReason = response.error.reason;
+
+    alert(`Payment Failed!\n\nError: ${errorDescription}\nReason: ${errorReason}\n\nPlease try again.`);
+}
+
+// Save order to history (optional feature)
+function saveOrderToHistory(orderData) {
+    const orders = JSON.parse(localStorage.getItem('quintOrders')) || [];
+    orders.push(orderData);
+    localStorage.setItem('quintOrders', JSON.stringify(orders));
+}
+
