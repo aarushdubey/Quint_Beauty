@@ -4,7 +4,7 @@ import { signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from
 import { collection, getDocs, query, orderBy, limit, where } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 // Authorized admin emails
-const ADMIN_EMAILS = ['beautyquint@gmail.com', 'r.kdubey2004@gmail.com'];
+const ADMIN_EMAILS = ['beautyquint@gmail.com'];
 
 let currentUser = null;
 let allOrders = [];
