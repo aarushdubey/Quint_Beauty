@@ -534,6 +534,9 @@ function handleImageFile(file) {
         fileNameDisplay.textContent = file.name;
         dropZoneContent.style.display = 'none';
         imagePreview.style.display = 'block';
+
+        // Set hidden field to indicate image is ready
+        document.getElementById('productImage').value = 'pending_upload';
     };
     reader.readAsDataURL(file);
 }
