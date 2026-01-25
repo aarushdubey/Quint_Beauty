@@ -276,14 +276,31 @@
                     </div>
 
                     <div style="margin-bottom: 2rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Product Image Filename
-                            *</label>
-                        <input type="text" id="productImage" required placeholder="product-name.jpg"
-                            style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-family: var(--font-body);">
-                        <small style="color: #666; font-size: 0.85rem; display: block; margin-top: 0.5rem;">
-                            📁 Upload your image to <code>/assets/images/products/</code> folder in GitHub, then enter
-                            the filename here (e.g., "lipstick-red.jpg")
-                        </small>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Product Image *</label>
+
+                        <!-- Drag & Drop Area -->
+                        <div id="dropZone"
+                            style="border: 2px dashed #ddd; border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: #fafafa;">
+                            <input type="file" id="productImageFile" accept="image/*" style="display: none;">
+                            <div id="dropZoneContent">
+                                <svg style="width: 48px; height: 48px; margin: 0 auto 1rem; color: #999;" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                    </path>
+                                </svg>
+                                <p style="margin: 0 0 0.5rem 0; font-weight: 500;">Click to upload or drag and drop</p>
+                                <p style="margin: 0; font-size: 0.85rem; color: #999;">PNG, JPG, WebP up to 5MB</p>
+                            </div>
+                            <div id="imagePreview" style="display: none;">
+                                <img id="previewImg"
+                                    style="max-width: 100%; max-height: 200px; border-radius: 8px; margin-bottom: 1rem;">
+                                <p id="fileName" style="margin: 0; font-size: 0.9rem; color: #666;"></p>
+                                <button type="button" id="removeImage"
+                                    style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer;">Remove</button>
+                            </div>
+                        </div>
+                        <input type="hidden" id="productImage">
                     </div>
 
                     <div style="display: flex; gap: 1rem;">

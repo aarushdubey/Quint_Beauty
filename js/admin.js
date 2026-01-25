@@ -424,10 +424,126 @@ function displayProducts() {
     container.appendChild(grid);
 }
 
+// ========== IMAGE UPLOAD HANDLING ==========
+
+// ImgBB API Key (Get yours free at: https://api.imgbb.com/)
+const IMGBB_API_KEY = 'YOUR_IMGBB_API_KEY_HERE'; // Replace with your actual key
+
+// Drag & Drop Image Upload
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('productImageFile');
+const dropZoneContent = document.getElementById('dropZoneContent');
+const imagePreview = document.getElementById('imagePreview');
+const previewImg = document.getElementById('previewImg');
+const fileNameDisplay = document.getElementById('fileName');
+const removeImageBtn = document.getElementById('removeImage');
+
+// Click to upload
+dropZone?.addEventListener('click', () => {
+    fileInput?.click();
+});
+
+// Prevent default drag behaviors
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone?.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    });
+});
+
+// Highlight drop zone when dragging over
+['dragenter', 'dragover'].forEach(eventName => {
+    dropZone?.addEventListener(eventName, () => {
+        dropZone.style.borderColor = '#4CAF50';
+        dropZone.style.background = '#f1f8f4';
+    });
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+    dropZone?.addEventListener(eventName, () => {
+        dropZone.style.borderColor = '#ddd';
+        dropZone.style.background = '#fafafa';
+    });
+});
+
+// Handle dropped files
+dropZone?.addEventListener('drop', (e) => {
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleImageFile(files[0]);
+    }
+});
+
+// Handle selected files
+fileInput?.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleImageFile(e.target.files[0]);
+    }
+});
+
+// Remove image
+removeImageBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput.value = '';
+    document.getElementById('productImage').value = '';
+    dropZoneContent.style.display = 'block';
+    imagePreview.style.display = 'none';
+});
+
+// Handle image file
+function handleImageFile(file) {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file (PNG, JPG, WebP)');
+        return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        alert('Image size must be less than 5MB');
+        return;
+    }
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        previewImg.src = e.target.result;
+        fileNameDisplay.textContent = file.name;
+        dropZoneContent.style.display = 'none';
+        imagePreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+// Upload image to ImgBB
+async function uploadImageToImgBB(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            return data.data.url;
+        } else {
+            throw new Error('Upload failed');
+        }
+    } catch (error) {
+        console.error('ImgBB upload error:', error);
+        throw error;
+    }
+}
+
 // Open Add Product Modal
 document.getElementById('addProductBtn')?.addEventListener('click', () => {
     editingProductId = null;
     document.getElementById('productModalTitle').textContent = 'Add New Product';
+
     document.getElementById('productSubmitText').textContent = 'Add Product';
     document.getElementById('productForm').reset();
     document.getElementById('productModal').classList.add('active');
@@ -445,19 +561,30 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
 
     const submitBtn = document.getElementById('productSubmitText');
     const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Saving...';
 
     try {
-        // Get image filename and construct full path
-        const imageFilename = document.getElementById('productImage').value.trim();
-        if (!imageFilename) {
-            alert('Please enter an image filename');
+        let imageUrl = document.getElementById('productImage').value; // For edit mode (existing image)
+
+        // Check if new image is being uploaded
+        const imageFile = fileInput?.files[0];
+        if (imageFile) {
+            // Check if API key is configured
+            if (IMGBB_API_KEY === 'YOUR_IMGBB_API_KEY_HERE') {
+                alert('Please configure your ImgBB API key in admin.js\n\nGet your free API key at: https://api.imgbb.com/');
+                return;
+            }
+
+            submitBtn.textContent = 'Uploading image...';
+            imageUrl = await uploadImageToImgBB(imageFile);
+        }
+
+        if (!imageUrl) {
+            alert('Please upload a product image');
             submitBtn.textContent = originalText;
             return;
         }
 
-        // Construct image URL (assumes image is in /assets/images/products/)
-        const imageUrl = `assets/images/products/${imageFilename}`;
+        submitBtn.textContent = 'Saving...';
 
         const productData = {
             name: document.getElementById('productName').value,
