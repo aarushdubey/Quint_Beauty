@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAuthListeners();
     setupNavigation();
     setupLogout();
+    setupLogin();
 });
 
 // Auth State Listener
@@ -38,15 +39,20 @@ function setupAuthListeners() {
 }
 
 // Login
-document.getElementById('adminLoginBtn')?.addEventListener('click', async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-        await signInWithPopup(auth, provider);
-    } catch (error) {
-        console.error('Login error:', error);
-        alert('Login failed. Please try again.');
+function setupLogin() {
+    const loginBtn = document.getElementById('adminLoginBtn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Login failed. Please try again.');
+            }
+        });
     }
-});
+}
 
 // Logout
 function setupLogout() {
