@@ -1,6 +1,6 @@
 // Admin Dashboard JavaScript
 import { auth, db } from './firebase-init.js';
-import { signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 import { collection, getDocs, query, orderBy, limit, where } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 // Authorized admin emails
@@ -12,8 +12,6 @@ let allOrders = [];
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Admin dashboard loaded');
-    console.log('Auth object:', auth);
-    console.log('DB object:', db);
     setupAuthListeners();
     setupNavigation();
     setupLogout();
@@ -41,25 +39,31 @@ function setupAuthListeners() {
     });
 }
 
-// Login
+// Login with Email/Password
 function setupLogin() {
-    const loginBtn = document.getElementById('adminLoginBtn');
-    console.log('Login button found:', loginBtn);
-    if (loginBtn) {
-        loginBtn.addEventListener('click', async () => {
-            console.log('Login button clicked!');
-            const provider = new GoogleAuthProvider();
+    const loginForm = document.getElementById('adminLoginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const loginBtn = document.getElementById('adminLoginBtn');
+
+            // Disable button and show loading
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Signing in...';
+
             try {
-                console.log('Attempting sign in...');
-                await signInWithPopup(auth, provider);
-                console.log('Sign in successful!');
+                await signInWithEmailAndPassword(auth, email, password);
+                console.log('Login successful!');
             } catch (error) {
                 console.error('Login error:', error);
                 alert('Login failed: ' + error.message);
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Sign In';
             }
         });
-    } else {
-        console.error('Login button not found!');
     }
 }
 
