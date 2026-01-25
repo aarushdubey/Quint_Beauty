@@ -601,8 +601,8 @@ async function handlePaymentSuccess(response, formData, cart, totalAmount) {
         })
     };
 
-    // Send admin notification email (template_admin_order - you'll need to create this)
-    const adminEmailPromise = emailjs.send('service_xrl22yi', 'template_admin_order', adminEmailParams);
+    // Send admin notification email
+    const adminEmailPromise = emailjs.send('service_xrl22yi', 'template_ryjw82n', adminEmailParams);
 
     // Wait for both emails (but don't block if admin email fails)
     Promise.allSettled([customerEmailPromise, adminEmailPromise])
