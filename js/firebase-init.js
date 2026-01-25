@@ -53,6 +53,32 @@ export function initAuthMonitor(callback) {
             // User is signed in
             window.currentUser = user;
             console.log("User is authenticated:", user.email);
+
+            // --- MIGRATE GUEST ORDERS TO USER ---
+            const guestOrders = JSON.parse(localStorage.getItem('quintOrders')) || [];
+            if (guestOrders.length > 0) {
+                const userKey = `quintOrders_${user.uid}`;
+                const userOrders = JSON.parse(localStorage.getItem(userKey)) || [];
+
+                // Merge orders (avoid duplicates by Order ID)
+                let newOrdersAdded = false;
+                guestOrders.forEach(guestOrder => {
+                    const exists = userOrders.some(uOrder => uOrder.orderId === guestOrder.orderId);
+                    if (!exists) {
+                        userOrders.push(guestOrder);
+                        newOrdersAdded = true;
+                    }
+                });
+
+                if (newOrdersAdded) {
+                    localStorage.setItem(userKey, JSON.stringify(userOrders));
+                    console.log("Migrated guest orders to user account.");
+                    // Optional: Clear guest orders or keep them? Keeping them is safer for now.
+                    // localStorage.removeItem('quintOrders'); 
+                }
+            }
+            // ------------------------------------
+
         } else {
             // User is signed out
             window.currentUser = null;
