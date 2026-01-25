@@ -11,6 +11,9 @@ let allOrders = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Admin dashboard loaded');
+    console.log('Auth object:', auth);
+    console.log('DB object:', db);
     setupAuthListeners();
     setupNavigation();
     setupLogout();
@@ -41,16 +44,22 @@ function setupAuthListeners() {
 // Login
 function setupLogin() {
     const loginBtn = document.getElementById('adminLoginBtn');
+    console.log('Login button found:', loginBtn);
     if (loginBtn) {
         loginBtn.addEventListener('click', async () => {
+            console.log('Login button clicked!');
             const provider = new GoogleAuthProvider();
             try {
+                console.log('Attempting sign in...');
                 await signInWithPopup(auth, provider);
+                console.log('Sign in successful!');
             } catch (error) {
                 console.error('Login error:', error);
-                alert('Login failed. Please try again.');
+                alert('Login failed: ' + error.message);
             }
         });
+    } else {
+        console.error('Login button not found!');
     }
 }
 
