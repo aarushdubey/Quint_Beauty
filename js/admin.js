@@ -429,66 +429,84 @@ function displayProducts() {
 // ImgBB API Key (Get yours free at: https://api.imgbb.com/)
 const IMGBB_API_KEY = '936f516a5f95c452991da863a0bc841d';
 
-// Drag & Drop Image Upload
-const dropZone = document.getElementById('dropZone');
-const fileInput = document.getElementById('productImageFile');
-const dropZoneContent = document.getElementById('dropZoneContent');
-const imagePreview = document.getElementById('imagePreview');
-const previewImg = document.getElementById('previewImg');
-const fileNameDisplay = document.getElementById('fileName');
-const removeImageBtn = document.getElementById('removeImage');
+// Initialize drag & drop functionality
+function initializeImageUpload() {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('productImageFile');
+    const dropZoneContent = document.getElementById('dropZoneContent');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const fileNameDisplay = document.getElementById('fileName');
+    const removeImageBtn = document.getElementById('removeImage');
 
-// Click to upload
-dropZone?.addEventListener('click', () => {
-    fileInput?.click();
-});
+    if (!dropZone || !fileInput) {
+        console.error('Drop zone or file input not found');
+        return;
+    }
 
-// Prevent default drag behaviors
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropZone?.addEventListener(eventName, (e) => {
+    // Remove any existing event listeners by cloning
+    const newDropZone = dropZone.cloneNode(true);
+    dropZone.parentNode.replaceChild(newDropZone, dropZone);
+    const dropZoneElement = document.getElementById('dropZone');
+    const fileInputElement = document.getElementById('productImageFile');
+
+    // Click to upload
+    dropZoneElement.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        fileInputElement.click();
     });
-});
 
-// Highlight drop zone when dragging over
-['dragenter', 'dragover'].forEach(eventName => {
-    dropZone?.addEventListener(eventName, () => {
-        dropZone.style.borderColor = '#4CAF50';
-        dropZone.style.background = '#f1f8f4';
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZoneElement.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
     });
-});
 
-['dragleave', 'drop'].forEach(eventName => {
-    dropZone?.addEventListener(eventName, () => {
-        dropZone.style.borderColor = '#ddd';
-        dropZone.style.background = '#fafafa';
+    // Highlight drop zone when dragging over
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZoneElement.addEventListener(eventName, () => {
+            dropZoneElement.style.borderColor = '#4CAF50';
+            dropZoneElement.style.background = '#f1f8f4';
+        });
     });
-});
 
-// Handle dropped files
-dropZone?.addEventListener('drop', (e) => {
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-        handleImageFile(files[0]);
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZoneElement.addEventListener(eventName, () => {
+            dropZoneElement.style.borderColor = '#ddd';
+            dropZoneElement.style.background = '#fafafa';
+        });
+    });
+
+    // Handle dropped files
+    dropZoneElement.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleImageFile(files[0]);
+        }
+    });
+
+    // Handle selected files
+    fileInputElement.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleImageFile(e.target.files[0]);
+        }
+    });
+
+    // Remove image
+    const removeBtn = document.getElementById('removeImage');
+    if (removeBtn) {
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fileInputElement.value = '';
+            document.getElementById('productImage').value = '';
+            document.getElementById('dropZoneContent').style.display = 'block';
+            document.getElementById('imagePreview').style.display = 'none';
+        });
     }
-});
-
-// Handle selected files
-fileInput?.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-        handleImageFile(e.target.files[0]);
-    }
-});
-
-// Remove image
-removeImageBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    fileInput.value = '';
-    document.getElementById('productImage').value = '';
-    dropZoneContent.style.display = 'block';
-    imagePreview.style.display = 'none';
-});
+}
 
 // Handle image file
 function handleImageFile(file) {
@@ -507,6 +525,11 @@ function handleImageFile(file) {
     // Show preview
     const reader = new FileReader();
     reader.onload = (e) => {
+        const previewImg = document.getElementById('previewImg');
+        const fileNameDisplay = document.getElementById('fileName');
+        const dropZoneContent = document.getElementById('dropZoneContent');
+        const imagePreview = document.getElementById('imagePreview');
+
         previewImg.src = e.target.result;
         fileNameDisplay.textContent = file.name;
         dropZoneContent.style.display = 'none';
@@ -539,14 +562,26 @@ async function uploadImageToImgBB(file) {
     }
 }
 
+
 // Open Add Product Modal
 document.getElementById('addProductBtn')?.addEventListener('click', () => {
     editingProductId = null;
     document.getElementById('productModalTitle').textContent = 'Add New Product';
-
     document.getElementById('productSubmitText').textContent = 'Add Product';
     document.getElementById('productForm').reset();
+
+    // Reset image upload area
+    const dropZoneContent = document.getElementById('dropZoneContent');
+    const imagePreview = document.getElementById('imagePreview');
+    if (dropZoneContent) dropZoneContent.style.display = 'block';
+    if (imagePreview) imagePreview.style.display = 'none';
+
     document.getElementById('productModal').classList.add('active');
+
+    // Initialize image upload after modal is visible
+    setTimeout(() => {
+        initializeImageUpload();
+    }, 100);
 });
 
 // Close Product Modal
@@ -566,6 +601,7 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
         let imageUrl = document.getElementById('productImage').value; // For edit mode (existing image)
 
         // Check if new image is being uploaded
+        const fileInput = document.getElementById('productImageFile');
         const imageFile = fileInput?.files[0];
         if (imageFile) {
             // Check if API key is configured
