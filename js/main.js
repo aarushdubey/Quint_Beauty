@@ -571,16 +571,59 @@ async function handlePaymentSuccess(response, formData, cart, totalAmount) {
         customer_name: formData.firstName
     };
 
+
     console.log("Email params being sent:", emailParams);
 
-    emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
-        .then(function () {
-            console.log('Email sent successfully!');
+    // Send customer confirmation email
+    const customerEmailPromise = emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams);
+
+    // Prepare admin notification email
+    const adminEmailParams = {
+        to_email: 'beautyquint@gmail.com',
+        admin_email: 'beautyquint@gmail.com',
+        order_id: orderDetails.orderId,
+        customer_name: `${formData.firstName} ${formData.lastName}`,
+        customer_email: formData.email,
+        customer_phone: formData.phone || 'Not provided',
+        customer_address: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
+        order_items_html: itemsHTML,
+        cost_shipping: "0.00",
+        cost_tax: "0.00",
+        cost_total: totalAmount.toFixed(2),
+        payment_id: orderDetails.paymentId,
+        order_date: new Date().toLocaleString('en-IN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        })
+    };
+
+    // Send admin notification email (template_admin_order - you'll need to create this)
+    const adminEmailPromise = emailjs.send('service_xrl22yi', 'template_admin_order', adminEmailParams);
+
+    // Wait for both emails (but don't block if admin email fails)
+    Promise.allSettled([customerEmailPromise, adminEmailPromise])
+        .then(function (results) {
+            if (results[0].status === 'fulfilled') {
+                console.log('Customer email sent successfully!');
+            } else {
+                console.error('Customer email failed:', results[0].reason);
+            }
+
+            if (results[1].status === 'fulfilled') {
+                console.log('Admin notification sent successfully!');
+            } else {
+                console.error('Admin notification failed:', results[1].reason);
+            }
+
             // Redirect to Order Confirmation Page
             window.location.href = 'order-confirmed.html';
         })
         .catch(function (error) {
-            console.error('Email FAILED to send:', error);
+            console.error('Email sending error:', error);
             // Redirect anyway - do not block user
             console.log("Redirecting despite email error...");
             window.location.href = 'order-confirmed.html';
