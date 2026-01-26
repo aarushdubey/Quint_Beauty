@@ -28,7 +28,7 @@ async function loadShopProducts() {
         console.log('Loaded products from Firestore:', products.length);
 
         // Update product count
-        const countSpan = document.querySelector('.flex-between span');
+        const countSpan = document.getElementById('product-count');
         if (countSpan) {
             countSpan.textContent = `Showing ${products.length} product${products.length !== 1 ? 's' : ''}`;
         }
