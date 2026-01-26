@@ -52,44 +52,57 @@
         .shop-header p {
             color: rgba(255, 255, 255, 0.9) !important;
         }
+
+        /* Force Cart Icon Styles for Shop Page */
+        .cart-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--color-text-main);
+            color: var(--color-white);
+            font-size: 0.7rem;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 500;
+            padding: 0 4px;
+            line-height: 1;
+        }
     </style>
+
 </head>
 
 <body>
-
     <!-- Header -->
     <header id="header">
-        <div class="container header-inner flex-between">
-            <button class="mobile-menu-btn" aria-label="Menu">
-                <i data-feather="menu"></i>
-            </button>
-            <a href="index.html" class="logo">QUINT BEAUTY</a>
-            <nav class="nav-links">
-                <a href="index.html">Home</a>
-                <a href="shop.html" class="active" style="text-decoration: underline;">Shop</a>
-                <a href="about.html">About</a>
-                <a href="contact.html">Contact</a>
-            </nav>
-            <div class="nav-icons flex">
-                <a href="#" aria-label="Search"><i data-feather="search"></i></a>
-                <a href="orders.html" aria-label="My Orders" style="margin-right: 0.5rem;"><i
-                        data-feather="user"></i></a> <a href="cart.html" aria-label="Cart" class="cart-icon">
-                    <i data-feather="shopping-bag"></i>
-                    <span class="cart-count">0</span>
-                </a>
-            </div>
+        <div class="container header-inner flex-between"><button class="mobile-menu-btn" aria-label="Menu"><i
+                    data-feather="menu"></i></button><a href="index.html" class="logo">QUINT BEAUTY</a>
+            <nav class="nav-links"><a href="index.html">Home</a><a href="shop.html" class="active"
+                    style="text-decoration: underline;">Shop</a><a href="about.html">About</a><a
+                    href="contact.html">Contact</a></nav>
+            <div class="nav-icons flex"><a href="#" aria-label="Search"><i data-feather="search"></i></a><a
+                    href="orders.html" aria-label="My Orders" style="margin-right: 0.5rem;"><i
+                        data-feather="user"></i></a><a href="cart.html" aria-label="Cart" class="cart-icon"><i
+                        data-feather="shopping-bag"></i><span class="cart-count">0</span></a></div>
         </div>
     </header>
-
     <!-- Page Header -->
     <section class="shop-header">
         <div class="container fade-in-up">
             <h1>All Products</h1>
-            <p style="max-width: 500px; margin: 0 auto;">Discover our collection of premium beauty essentials designed
-                for the modern woman.</p>
+            <p style="max-width: 500px; margin: 0 auto;">Discover our collection of premium beauty essentials
+                designed for the modern woman.</p>
         </div>
     </section>
-
     <!-- Product Grid -->
     <section class="section">
         <div class="container">
@@ -97,33 +110,28 @@
             <div class="flex-between fade-in-up delay-100"
                 style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #eee;">
                 <span>Showing 3 products</span>
-                <div class="flex" style="gap: 1rem;">
-                    <span>Sort by:</span>
-                    <select
+                <div class="flex" style="gap: 1rem;"><span>Sort by:</span><select
                         style="border: none; background: transparent; font-family: var(--font-body); cursor: pointer;">
                         <option>Featured</option>
                         <option>Price: Low to High</option>
                         <option>Price: High to Low</option>
-                    </select>
-                </div>
+                    </select></div>
             </div>
-
             <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); row-gap: 3rem;">
                 <!-- Products will be loaded dynamically from Firestore -->
-                <p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #999;">Loading products...</p>
+                <p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #999;">
+                    Loading products...</p>
             </div>
         </div>
     </section>
-
     <!-- Footer -->
     <footer>
         <div class="container grid footer-grid">
-            <div class="footer-col">
-                <a href="#" class="logo" style="color: white; display: block; margin-bottom: 1rem;">QUINT BEAUTY</a>
-                <p style="color: #aaa; max-width: 300px; font-size: 0.9rem;">
-                    Quint Beauty is dedicated to providing high-quality, minimal makeup products that enhance your
-                    natural beauty.
-                </p>
+            <div class="footer-col"><a href="#" class="logo"
+                    style="color: white; display: block; margin-bottom: 1rem;">QUINT BEAUTY</a>
+                <p style="color: #aaa; max-width: 300px; font-size: 0.9rem;">Quint Beauty is dedicated
+                    to providing high-quality,
+                    minimal makeup products that enhance your natural beauty. </p>
             </div>
             <div class="footer-col">
                 <h4>Shop</h4>
@@ -144,22 +152,17 @@
             </div>
             <div class="footer-col">
                 <h4>Follow Us</h4>
-                <div class="flex" style="gap: 1rem;">
-                    <a href="#"><i data-feather="instagram"></i></a>
-                    <a href="#"><i data-feather="facebook"></i></a>
-                    <a href="#"><i data-feather="twitter"></i></a>
-                </div>
+                <div class="flex" style="gap: 1rem;"><a href="#"><i data-feather="instagram"></i></a><a href="#"><i
+                            data-feather="facebook"></i></a><a href="#"><i data-feather="twitter"></i></a></div>
             </div>
         </div>
         <div class="container"
             style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #333; text-align: center; font-size: 0.8rem; color: #666;">
-            &copy; 2025 QUINT BEAUTY All rights reserved.
-        </div>
+            &copy;
+            2025 QUINT BEAUTY All rights reserved. </div>
     </footer>
-
     <!-- Scripts -->
-    <script>
-        feather.replace();
+    <script>feather.replace();
     </script>
     <script src="js/main.js?v=1.1"></script>
     <script type="module" src="js/shop-products.js"></script>
