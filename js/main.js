@@ -81,7 +81,14 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCheckoutPage();
     }
 
-    // Scroll Animation Observer
+    // Initialize on load
+    if (window.initRevealAnimations) {
+        window.initRevealAnimations();
+    }
+});
+
+// Scroll Animation Observer (Global)
+window.initRevealAnimations = function () {
     const observerOptions = {
         threshold: 0.1,
         rootMargin: "0px 0px -50px 0px"
@@ -96,9 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, observerOptions);
 
-    const revealElements = document.querySelectorAll('.reveal');
+    const revealElements = document.querySelectorAll('.reveal:not(.active)');
     revealElements.forEach(el => observer.observe(el));
-});
+};
 
 // --- Cart Logic ---
 
