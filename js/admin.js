@@ -74,7 +74,7 @@ function setupLogin() {
         });
     }
 }
-}
+
 
 // Logout
 function setupLogout() {
