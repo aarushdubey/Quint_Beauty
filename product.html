@@ -144,207 +144,214 @@
             border-bottom-color: black;
             opacity: 1;
         }
-
-        /* FIX: Force Cart Count Visibility */
-        .cart-icon {
-            position: relative;
-        }
-
-        .cart-count {
-            position: absolute;
-            top: -5px;
-            right: -8px;
-            background-color: var(--color-text-main) !important;
-            color: white !important;
-            font-size: 10px;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            display: flex;
-            /* Default flex, JS will toggle */
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
     </style>
-
 </head>
 
 <body>
-    < !-- Header -->
-        <header id="header">
-            <div class="container header-inner flex-between"><button class="mobile-menu-btn" aria-label="Menu"><i
-                        data-feather="menu"></i></button><a href="index.html" class="logo">QUINT BEAUTY</a>
-                <nav class="nav-links"><a href="index.html">Home</a><a href="shop.html" class="active"
-                        style="text-decoration: underline;">Shop</a><a href="about.html">About</a><a
-                        href="contact.html">Contact</a></nav>
-                <div class="nav-icons flex"><a href="#" aria-label="Search"><i data-feather="search"></i></a><a
-                        href="orders.html" aria-label="My Orders" style="margin-right: 0.5rem;"><i
-                            data-feather="user"></i></a><a href="cart.html" aria-label="Cart" class="cart-icon"><i
-                            data-feather="shopping-bag"></i><span class="cart-count">0</span></a></div>
+
+    <!-- Header -->
+    <header id="header">
+        <div class="container header-inner flex-between">
+            <button class="mobile-menu-btn" aria-label="Menu">
+                <i data-feather="menu"></i>
+            </button>
+            <a href="index.html" class="logo">QUINT BEAUTY</a>
+            <nav class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="shop.html" class="active" style="text-decoration: underline;">Shop</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+            <div class="nav-icons flex">
+                <a href="#" aria-label="Search"><i data-feather="search"></i></a>
+                <a href="orders.html" aria-label="My Orders" style="margin-right: 0.5rem;"><i
+                        data-feather="user"></i></a> <a href="cart.html" aria-label="Cart" class="cart-icon">
+                    <i data-feather="shopping-bag"></i>
+                    <span class="cart-count">0</span>
+                </a>
             </div>
-        </header>
-        <section class="section">
-            <div class="container product-layout">
-                < !-- Gallery -->
-                    <div class="product-gallery fade-in-up"><img
-                            src="https://images.unsplash.com/photo-1620802051782-959c299e984a?q=80&w=2632&auto=format&fit=crop"
-                            class="product-main-img" id="mainImg">
-                        <div class="product-thumbs">
-                            <div class="thumb active"
-                                onclick="changeImage(this, 'https://images.unsplash.com/photo-1620802051782-959c299e984a?q=80&w=2632&auto=format&fit=crop')">
-                                <img src="https://images.unsplash.com/photo-1620802051782-959c299e984a?q=80&w=2632&auto=format&fit=crop"
-                                    alt="Thumb 1"></div>
-                            <div class="thumb"
-                                onclick="changeImage(this, 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2671&auto=format&fit=crop')">
-                                <img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2671&auto=format&fit=crop"
-                                    alt="Thumb 2"></div>
-                            <div class="thumb"
-                                onclick="changeImage(this, 'https://images.unsplash.com/photo-1596704017382-30538638b44d?q=80&w=2069&auto=format&fit=crop')">
-                                <img src="https://images.unsplash.com/photo-1596704017382-30538638b44d?q=80&w=2069&auto=format&fit=crop"
-                                    alt="Thumb 3"></div>
-                        </div>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="container product-layout">
+
+            <!-- Gallery -->
+            <div class="product-gallery fade-in-up">
+                <img src="https://images.unsplash.com/photo-1620802051782-959c299e984a?q=80&w=2632&auto=format&fit=crop"
+                    class="product-main-img" id="mainImg">
+                <div class="product-thumbs">
+                    <div class="thumb active"
+                        onclick="changeImage(this, 'https://images.unsplash.com/photo-1620802051782-959c299e984a?q=80&w=2632&auto=format&fit=crop')">
+                        <img src="https://images.unsplash.com/photo-1620802051782-959c299e984a?q=80&w=2632&auto=format&fit=crop"
+                            alt="Thumb 1">
                     </div>
-                    < !-- Product Details -->
-                        <div class="product-details fade-in-up delay-100">
-                            <p class="breadcrumbs"
-                                style="color: #666; font-size: 0.85rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
-                                <a href="index.html" style="color: #888;">Home</a>/ <a href="shop.html"
-                                    style="color: #888;">Shop</a>/ <span style="color: #333; font-weight: 500;">Product
-                                    Details</span></p>
-                            <h1 class="product-title"
-                                style="font-size: 2.5rem; margin-bottom: 0.5rem; letter-spacing: -0.02em;">Loading...
-                            </h1>
-                            <p class="product-price"
-                                style="font-size: 1.5rem; color: #333; margin-bottom: 2rem; font-weight: 400;"></p>
-                            <div class="product-description"
-                                style="line-height: 1.8; margin-bottom: 2.5rem; color: #555; font-size: 1.05rem;">
-                                < !-- Description will be loaded here -->
-                            </div>
-                            <div class="actions flex" style="gap: 1.5rem; margin-bottom: 2.5rem; align-items: stretch;">
-                                <div class="qty-selector"><button id="qty-minus">-</button><input type="number"
-                                        id="quantity" value="1" min="1" max="10" readonly><button
-                                        id="qty-plus">+</button></div><button class="btn btn-primary add-to-cart"
-                                    style="flex: 1; padding: 0 2rem; font-size: 1rem; letter-spacing: 0.1em; display: flex; align-items: center; justify-content: center;">ADD
-                                    TO CART</button>
-                            </div>
-                            <div id="stockStatus" style="margin-bottom: 1rem; font-size: 0.9rem; color: #666;"></div>
-                            <div class="product-tabs" style="border-top: 1px solid #ddd; padding-top: 2rem;">
-                                <details>
-                                    <summary style="cursor: pointer; font-weight: 500; margin-bottom: 1rem;">Ingredients
-                                    </summary>
-                                    <p style="color: #666; font-size: 0.9rem;">Isododecane,
-                                        Synthetic Wax,
-                                        Hydrogenated Polydicyclopentadiene,
-                                        PEG/PPG-18/18 Dimethicone,
-                                        Polybutene,
-                                        Glyceryl Tribehenate/Isostearate/Eicosandioate,
-                                        Nylon-12,
-                                        Polyethylene,
-                                        Perfluorononyl Dimethicone,
-                                        Polyglyceryl-4 Diisostearate/Polyhydroxystearate/Sebacate,
-                                        Synthetic Beeswax. </p>
-                                </details>
-                                <details>
-                                    <summary style="cursor: pointer; font-weight: 500; margin-bottom: 1rem;">How to Use
-                                    </summary>
-                                    <p style="color: #666; font-size: 0.9rem;">Apply along the waterline or lash line.
-                                        For a smokey effect,
-                                        smudge immediately after application. </p>
-                                </details>
-                            </div>
-                        </div>
-            </div>
-            </div>
-        </section>
-        < !-- You might also like -->
-            <section class="section" style="background: var(--color-bg-alt);">
-                <div class="container reveal">
-                    <h3 style="text-align: center; margin-bottom: 2rem;">You Might Also Like</h3>
-                    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));"><a href="#"
-                            class="product-card">
-                            <div class="product-img-wrapper"
-                                style="height: 300px; background: white; margin-bottom: 1rem;"><img
-                                    src="https://images.unsplash.com/photo-1631214500115-598fc2cb8d2d?q=80&w=2525&auto=format&fit=crop"
-                                    alt="Velvet Lip Gloss"></div>
-                            <div class="product-info text-center">
-                                <h4>Velvet Lip Gloss</h4>
-                                <p>₹1800.00</p>
-                            </div>
-                        </a><a href="#" class="product-card">
-                            <div class="product-img-wrapper"
-                                style="height: 300px; background: white; margin-bottom: 1rem;"><img
-                                    src="https://images.unsplash.com/photo-1631730486784-5456119f69ae?q=80&w=2575&auto=format&fit=crop"
-                                    alt="Volume Mascara"></div>
-                            <div class="product-info text-center">
-                                <h4>Volume Mascara</h4>
-                                <p>₹1500.00</p>
-                            </div>
-                        </a><a href="#" class="product-card">
-                            <div class="product-img-wrapper"
-                                style="height: 300px; background: white; margin-bottom: 1rem;"><img
-                                    src="https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=2680&auto=format&fit=crop"
-                                    alt="Setting Spray"></div>
-                            <div class="product-info text-center">
-                                <h4>Setting Spray</h4>
-                                <p>₹2200.00</p>
-                            </div>
-                        </a></div>
+                    <div class="thumb"
+                        onclick="changeImage(this, 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2671&auto=format&fit=crop')">
+                        <img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2671&auto=format&fit=crop"
+                            alt="Thumb 2">
+                    </div>
+                    <div class="thumb"
+                        onclick="changeImage(this, 'https://images.unsplash.com/photo-1596704017382-30538638b44d?q=80&w=2069&auto=format&fit=crop')">
+                        <img src="https://images.unsplash.com/photo-1596704017382-30538638b44d?q=80&w=2069&auto=format&fit=crop"
+                            alt="Thumb 3">
+                    </div>
                 </div>
-            </section>
-            < !-- Footer -->
-                <footer>
-                    <div class="container grid footer-grid">
-                        <div class="footer-col"><a href="#" class="logo"
-                                style="color: white; display: block; margin-bottom: 1rem;">QUINT BEAUTY</a>
-                            <p style="color: #aaa; max-width: 300px; font-size: 0.9rem;">Quint Beauty is dedicated to
-                                providing high-quality,
-                                minimal makeup products that enhance your natural beauty. </p>
-                        </div>
-                        <div class="footer-col">
-                            <h4>Shop</h4>
-                            <ul>
-                                <li><a href="shop.html">All Products</a></li>
-                                <li><a href="#">Best Sellers</a></li>
-                                <li><a href="#">New Arrivals</a></li>
-                                <li><a href="#">Sets</a></li>
-                            </ul>
-                        </div>
-                        <div class="footer-col">
-                            <h4>Help</h4>
-                            <ul>
-                                <li><a href="#">Shipping & Returns</a></li>
-                                <li><a href="#">FAQ</a></li>
-                                <li><a href="contact.html">Contact Us</a></li>
-                            </ul>
-                        </div>
-                        <div class="footer-col">
-                            <h4>Follow Us</h4>
-                            <div class="flex" style="gap: 1rem;"><a href="https://www.instagram.com/quint.beauty/"
-                                    target="_blank"
-                                    style="display: flex; align-items: center; gap: 0.5rem; color: inherit;"><i
-                                        data-feather="instagram" style="width: 20px; height: 20px;"></i><span
-                                        style="font-size: 0.9rem;">@quint.beauty</span></a></div>
-                        </div>
+            </div>
+
+            <!-- Product Details -->
+            <div class="product-details fade-in-up delay-100">
+                <p class="breadcrumbs"
+                    style="color: #666; font-size: 0.85rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    <a href="index.html" style="color: #888;">Home</a> / <a href="shop.html"
+                        style="color: #888;">Shop</a> / <span style="color: #333; font-weight: 500;">Product
+                        Details</span>
+                </p>
+
+                <h1 class="product-title" style="font-size: 2.5rem; margin-bottom: 0.5rem; letter-spacing: -0.02em;">
+                    Loading...</h1>
+                <p class="product-price" style="font-size: 1.5rem; color: #333; margin-bottom: 2rem; font-weight: 400;">
+                </p>
+
+                <div class="product-description"
+                    style="line-height: 1.8; margin-bottom: 2.5rem; color: #555; font-size: 1.05rem;">
+                    <!-- Description will be loaded here -->
+                </div>
+
+                <div class="actions flex" style="gap: 1.5rem; margin-bottom: 2.5rem; align-items: stretch;">
+                    <div class="qty-selector">
+                        <button id="qty-minus">-</button>
+                        <input type="number" id="quantity" value="1" min="1" max="10" readonly>
+                        <button id="qty-plus">+</button>
                     </div>
-                    <div class="container"
-                        style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #333; text-align: center; font-size: 0.8rem; color: #666;">
-                        &copy;
-                        2026 QUINT BEAUTY All rights reserved. </div>
-                </footer>
-                < !-- Scripts -->
-                    <script>feather.replace();
+                    <button class="btn btn-primary add-to-cart"
+                        style="flex: 1; padding: 0 2rem; font-size: 1rem; letter-spacing: 0.1em; display: flex; align-items: center; justify-content: center;">ADD
+                        TO CART</button>
+                </div>
 
-                    </script>
-                    <script src="js/main.js?v=1.2"></script>
-                    <script type="module" src="js/product-details.js"></script>
-                    <script>function changeImage(element, src) {
-                            document.getElementById('mainImg').src = src;
-                            document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
-                            element.classList.add('active');
-                        }
+                <div id="stockStatus" style="margin-bottom: 1rem; font-size: 0.9rem; color: #666;"></div>
 
-                    </script>
+                <div class="product-tabs" style="border-top: 1px solid #ddd; padding-top: 2rem;">
+                    <details>
+                        <summary style="cursor: pointer; font-weight: 500; margin-bottom: 1rem;">Ingredients</summary>
+                        <p style="color: #666; font-size: 0.9rem;">
+                            Isododecane, Synthetic Wax, Hydrogenated Polydicyclopentadiene, PEG/PPG-18/18 Dimethicone,
+                            Polybutene, Glyceryl Tribehenate/Isostearate/Eicosandioate, Nylon-12, Polyethylene,
+                            Perfluorononyl Dimethicone, Polyglyceryl-4 Diisostearate/Polyhydroxystearate/Sebacate,
+                            Synthetic
+                            Beeswax.
+                        </p>
+                    </details>
+                    <details>
+                        <summary style="cursor: pointer; font-weight: 500; margin-bottom: 1rem;">How to Use</summary>
+                        <p style="color: #666; font-size: 0.9rem;">
+                            Apply along the waterline or lash line. For a smokey effect, smudge immediately after
+                            application.
+                        </p>
+                    </details>
+                </div>
+            </div>
+        </div>
+
+        </div>
+    </section>
+
+    <!-- You might also like -->
+    <section class="section" style="background: var(--color-bg-alt);">
+        <div class="container reveal">
+            <h3 style="text-align: center; margin-bottom: 2rem;">You Might Also Like</h3>
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                <a href="#" class="product-card">
+                    <div class="product-img-wrapper" style="height: 300px; background: white; margin-bottom: 1rem;">
+                        <img src="https://images.unsplash.com/photo-1631214500115-598fc2cb8d2d?q=80&w=2525&auto=format&fit=crop"
+                            alt="Velvet Lip Gloss">
+                    </div>
+                    <div class="product-info text-center">
+                        <h4>Velvet Lip Gloss</h4>
+                        <p>₹1800.00</p>
+                    </div>
+                </a>
+                <a href="#" class="product-card">
+                    <div class="product-img-wrapper" style="height: 300px; background: white; margin-bottom: 1rem;">
+                        <img src="https://images.unsplash.com/photo-1631730486784-5456119f69ae?q=80&w=2575&auto=format&fit=crop"
+                            alt="Volume Mascara">
+                    </div>
+                    <div class="product-info text-center">
+                        <h4>Volume Mascara</h4>
+                        <p>₹1500.00</p>
+                    </div>
+                </a>
+                <a href="#" class="product-card">
+                    <div class="product-img-wrapper" style="height: 300px; background: white; margin-bottom: 1rem;">
+                        <img src="https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=2680&auto=format&fit=crop"
+                            alt="Setting Spray">
+                    </div>
+                    <div class="product-info text-center">
+                        <h4>Setting Spray</h4>
+                        <p>₹2200.00</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container grid footer-grid">
+            <div class="footer-col">
+                <a href="#" class="logo" style="color: white; display: block; margin-bottom: 1rem;">QUINT BEAUTY</a>
+                <p style="color: #aaa; max-width: 300px; font-size: 0.9rem;">
+                    Quint Beauty is dedicated to providing high-quality, minimal makeup products that enhance your
+                    natural beauty.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Shop</h4>
+                <ul>
+                    <li><a href="shop.html">All Products</a></li>
+                    <li><a href="#">Best Sellers</a></li>
+                    <li><a href="#">New Arrivals</a></li>
+                    <li><a href="#">Sets</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Help</h4>
+                <ul>
+                    <li><a href="#">Shipping & Returns</a></li>
+                    <li><a href="#">FAQ</a></li>
+                    <li><a href="contact.html">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Follow Us</h4>
+                <div class="flex" style="gap: 1rem;">
+                    <a href="https://www.instagram.com/quint.beauty/" target="_blank"
+                        style="display: flex; align-items: center; gap: 0.5rem; color: inherit;">
+                        <i data-feather="instagram" style="width: 20px; height: 20px;"></i>
+                        <span style="font-size: 0.9rem;">@quint.beauty</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="container"
+            style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #333; text-align: center; font-size: 0.8rem; color: #666;">
+            &copy; 2026 QUINT BEAUTY All rights reserved.
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        feather.replace();
+    </script>
+    <script src="js/main.js?v=1.2"></script>
+    <script type="module" src="js/product-details.js"></script>
+    <script>
+        function changeImage(element, src) {
+            document.getElementById('mainImg').src = src;
+            document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+        }
+    </script>
 </body>
 
 </html>
