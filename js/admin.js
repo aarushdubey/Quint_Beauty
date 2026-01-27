@@ -521,6 +521,10 @@ function handleImageFiles(files) {
     });
 
     renderPreviews();
+
+    // Reset input to ensure change event fires reliably
+    const fileInput = document.getElementById('productImageFile');
+    if (fileInput) fileInput.value = '';
 }
 
 function renderPreviews() {
@@ -532,10 +536,26 @@ function renderPreviews() {
 
     container.innerHTML = '';
 
+    // Always keep drop zone content visible to allow adding more images
+    if (dropContent) {
+        dropContent.style.display = 'block';
+        const p = dropContent.querySelector('p');
+        if (p) {
+            if (currentImageFiles.length > 0) {
+                p.textContent = currentImageFiles.length >= 6 ? 'Maximum images reached' : 'Click to add more images';
+                p.style.fontWeight = 'bold';
+                p.style.color = '#1976d2';
+            } else {
+                p.textContent = 'Click to upload or drag and drop';
+                p.style.fontWeight = '500';
+                p.style.color = 'black';
+            }
+        }
+    }
+
     if (currentImageFiles.length > 0) {
         container.style.display = 'grid';
         if (actions) actions.style.display = 'block';
-        if (dropContent) dropContent.style.display = 'none';
 
         currentImageFiles.forEach((file, index) => {
             const reader = new FileReader();
@@ -572,6 +592,9 @@ function renderPreviews() {
                 e.stopPropagation();
                 currentImageFiles.splice(index, 1);
                 renderPreviews();
+                // Reset input to allow adding same file again if removed
+                const fileInput = document.getElementById('productImageFile');
+                if (fileInput) fileInput.value = '';
             };
 
             reader.onload = (e) => {
@@ -587,7 +610,6 @@ function renderPreviews() {
     } else {
         container.style.display = 'none';
         if (actions) actions.style.display = 'none';
-        if (dropContent) dropContent.style.display = 'block';
     }
 }
 
