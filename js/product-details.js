@@ -37,19 +37,41 @@ async function loadProductDetails() {
             const descEl = document.querySelector('.product-description');
             if (descEl) descEl.textContent = product.description;
 
-            // Update Main Image
+            // Update Main Image and Gallery
+            const images = product.images || (product.image ? [product.image] : []);
+
+            // Set Main Image
             const mainImg = document.getElementById('mainImg');
-            if (mainImg) {
-                mainImg.src = product.image;
+            if (mainImg && images.length > 0) {
+                mainImg.src = images[0]; // Default to first
                 mainImg.alt = product.name;
             }
 
-            // Update Thumbnails (using the same image for now as we only have one)
-            const thumbs = document.querySelectorAll('.thumb img');
-            thumbs.forEach(img => {
-                img.src = product.image;
-                img.alt = product.name;
-            });
+            // Update Thumbnails
+            const thumbsContainer = document.querySelector('.product-thumbs');
+            if (thumbsContainer) {
+                thumbsContainer.innerHTML = ''; // Clear static defaults
+
+                images.forEach((imgUrl, index) => {
+                    const thumbDiv = document.createElement('div');
+                    thumbDiv.className = `thumb ${index === 0 ? 'active' : ''}`;
+
+                    // Add click handler
+                    thumbDiv.onclick = function () {
+                        const main = document.getElementById('mainImg');
+                        if (main) main.src = imgUrl;
+                        document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+                    };
+
+                    const img = document.createElement('img');
+                    img.src = imgUrl;
+                    img.alt = `${product.name} ${index + 1}`;
+
+                    thumbDiv.appendChild(img);
+                    thumbsContainer.appendChild(thumbDiv);
+                });
+            }
 
             // Quantity Selector Logic
             const qtyMinus = document.getElementById('qty-minus');
