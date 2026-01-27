@@ -1,7 +1,7 @@
 // Admin Dashboard JavaScript
 import { auth, db } from './firebase-init.js';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { collection, getDocs, query, orderBy, limit, where, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { collection, getDocs, query, orderBy, limit, where, doc, updateDoc, addDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // Authorized admin emails
 const ADMIN_EMAILS = ['beautyquint@gmail.com', 'support@quintbeauty.com', 'aarushdubey@gmail.com'];
@@ -463,7 +463,7 @@ document.getElementById('orderModal')?.addEventListener('click', (e) => {
 
 // ========== PRODUCT MANAGEMENT ==========
 
-import { addDoc, updateDoc, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+// Imports moved to top
 
 let allProducts = [];
 let editingProductId = null;
