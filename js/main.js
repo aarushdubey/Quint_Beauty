@@ -414,8 +414,24 @@ function initiateRazorpayPayment(totalAmount) {
         return;
     }
 
+    // Manual validation to catch whitespace-only inputs
+    const requiredFields = ['email', 'phone', 'firstName', 'lastName', 'address', 'city', 'zipCode', 'state'];
+    let isValid = true;
+
+    requiredFields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            if (!el.value || el.value.trim() === '') {
+                el.setCustomValidity('Please fill out this field');
+                isValid = false;
+            } else {
+                el.setCustomValidity('');
+            }
+        }
+    });
+
     // Check if form is valid
-    if (!form.checkValidity()) {
+    if (!isValid || !form.checkValidity()) {
         // Trigger HTML5 validation UI
         form.reportValidity();
         return;
