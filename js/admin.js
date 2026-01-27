@@ -24,18 +24,25 @@ document.addEventListener('DOMContentLoaded', () => {
 // Auth State Listener
 function setupAuthListeners() {
     onAuthStateChanged(auth, async (user) => {
-        if (user && ADMIN_EMAILS.includes(user.email)) {
-            // Authorized admin
-            currentUser = user;
-            showDashboard();
-            updateUserInfo(user);
-            await loadDashboardData();
-        } else if (user) {
-            // Logged in but not admin
-            console.error('Unauthorized access attempt:', user.email);
-            alert(`Access Denied: ${user.email} is not authorized to access this page. Please use an admin account.`);
-            await signOut(auth);
-            showLogin();
+        console.log("Auth state changed. User:", user ? user.email : "None");
+
+        if (user) {
+            const normalizedEmail = user.email.toLowerCase();
+            const isAdmin = ADMIN_EMAILS.some(email => email.toLowerCase() === normalizedEmail);
+
+            if (isAdmin) {
+                // Authorized admin
+                currentUser = user;
+                showDashboard();
+                updateUserInfo(user);
+                await loadDashboardData();
+            } else {
+                // Logged in but not admin
+                console.error('Unauthorized access attempt:', user.email);
+                alert(`Access Denied: ${user.email} is not authorized. \n\nAuthorized admins: ${ADMIN_EMAILS.join(', ')}`);
+                await signOut(auth);
+                showLogin();
+            }
         } else {
             // Not logged in
             showLogin();
