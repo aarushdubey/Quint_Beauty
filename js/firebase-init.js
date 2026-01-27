@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, doc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -104,9 +104,39 @@ export async function getUserOrdersFromCloud(userId, userEmail = null) {
     }
 }
 
+// 3. Update Stock On Order
+export async function updateStockOnOrder(cartItems) {
+    if (!cartItems || cartItems.length === 0) return;
+
+    const batch = []; // We can't use atomic batch easily without more complex setup, so we'll do parallel updates for now or simple loop
+
+    // Note: For absolute production safety, you should use a Transaction. 
+    // For this level of app, direct updates are acceptable.
+
+    try {
+        const updatePromises = cartItems.map(item => {
+            if (!item.id) return Promise.resolve(); // Skip if no ID (shouldn't happen for DB products)
+
+            const productRef = doc(db, 'products', item.id);
+            // Decrement stock by quantity
+            return updateDoc(productRef, {
+                stock: increment(-item.quantity)
+            });
+        });
+
+        await Promise.all(updatePromises);
+        console.log("Stock updated successfully for all items.");
+        return true;
+    } catch (error) {
+        console.error("Error updating stock:", error);
+        return false;
+    }
+}
+
 // Make them available globally for main.js
 window.saveOrderToCloud = saveOrderToCloud;
 window.getUserOrdersFromCloud = getUserOrdersFromCloud;
+window.updateStockOnOrder = updateStockOnOrder;
 
 
 // Current User State (can be accessed globally)

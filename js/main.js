@@ -581,6 +581,13 @@ async function handlePaymentSuccess(response, formData, cart, totalAmount) {
         });
     } catch (e) { console.error("Error generating email HTML", e); }
 
+    // --- 1.5 UPDATE STOCK (Inventory Management) ---
+    if (window.updateStockOnOrder) {
+        console.log("Updating stock inventory...");
+        // Non-blocking call
+        window.updateStockOnOrder(cart).catch(err => console.error("Stock update failed", err));
+    }
+
     // --- 3. SEND EMAIL CONFIRMATION (Async) ---
     console.log("Attempting to send email...");
     const emailParams = {
