@@ -132,7 +132,87 @@ function switchPage(pageName) {
         loadAllOrders();
     } else if (pageName === 'products') {
         loadProducts();
+    } else if (pageName === 'customers') {
+        loadCustomers();
     }
+}
+
+// Load Customers (Derived from Orders)
+function loadCustomers() {
+    const tbody = document.getElementById('customersTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem;">Loading...</td></tr>';
+
+    // Ensure data is loaded
+    if (!allOrders || allOrders.length === 0) {
+        // If orders aren't loaded, try checking if dashboard loaded them.
+        // Or wait for loadDashboardData which runs on init. 
+        // If empty, display empty.
+        loadDashboardData().then(() => {
+            processCustomersData();
+        });
+    } else {
+        processCustomersData();
+    }
+}
+
+function processCustomersData() {
+    const tbody = document.getElementById('customersTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    const customersMap = new Map();
+
+    if (allOrders && allOrders.length > 0) {
+        allOrders.forEach(order => {
+            const info = order.customerInfo || {};
+            let email = info.email;
+
+            if (!email) return; // Skip invalid entries
+            email = email.toLowerCase();
+
+            if (!customersMap.has(email)) {
+                customersMap.set(email, {
+                    name: `${info.firstName || ''} ${info.lastName || ''}`.trim() || 'Unknown',
+                    email: info.email, // Keep original casing display? or normalized
+                    phone: info.phone || '-',
+                    orderCount: 0,
+                    totalSpent: 0
+                });
+            }
+
+            const customer = customersMap.get(email);
+            customer.orderCount += 1;
+            customer.totalSpent += parseFloat(order.total || 0);
+        });
+    }
+
+    if (customersMap.size === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem;">No customers found.</td></tr>';
+        return;
+    }
+
+    // Convert to array and sort by spend desc
+    const sortedCustomers = Array.from(customersMap.values())
+        .sort((a, b) => b.totalSpent - a.totalSpent);
+
+    sortedCustomers.forEach(customer => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-weight: 500;">${customer.name}</td>
+            <td>${customer.email}</td>
+            <td>${customer.phone}</td>
+            <td>${customer.orderCount}</td>
+            <td style="font-weight: 600;">₹${customer.totalSpent.toFixed(2)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Update total count
+    const totalCountEl = document.getElementById('totalCustomers');
+    if (totalCountEl) totalCountEl.textContent = customersMap.size;
 }
 
 // Load Dashboard Data

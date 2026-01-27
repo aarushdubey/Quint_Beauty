@@ -210,8 +210,21 @@
                     <p class="page-subtitle">View customer information and order history</p>
                 </div>
 
-                <div id="customersList">
-                    <p style="text-align: center; padding: 2rem; color: #999;">Coming soon...</p>
+                <div id="customersList" class="orders-table-container">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Orders</th>
+                                <th>Total Spent</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
