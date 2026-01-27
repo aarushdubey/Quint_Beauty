@@ -770,11 +770,14 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
 
 
 // Edit Product
+// Edit Product
 window.editProduct = function (productId) {
     const product = allProducts.find(p => p.id === productId);
     if (!product) return;
 
     editingProductId = productId;
+    currentImageFiles = []; // Clear new files list
+
     document.getElementById('productModalTitle').textContent = 'Edit Product';
     document.getElementById('productSubmitText').textContent = 'Update Product';
 
@@ -785,7 +788,34 @@ window.editProduct = function (productId) {
     document.getElementById('productCategory').value = product.category;
     document.getElementById('productImage').value = product.image;
 
+    // Reset preview area
+    const container = document.getElementById('imagePreviewContainer');
+    const actions = document.getElementById('imagePreviewActions');
+    const dropContent = document.getElementById('dropZoneContent');
+
+    if (container) {
+        container.innerHTML = '';
+        container.style.display = 'none';
+    }
+    if (actions) actions.style.display = 'none';
+    if (dropContent) {
+        dropContent.style.display = 'block';
+        const p = dropContent.querySelector('p');
+        if (p) {
+            p.textContent = 'Click to upload new images';
+            p.style.fontWeight = '500';
+            p.style.color = 'black';
+        }
+    }
+
     document.getElementById('productModal').classList.add('active');
+
+    // Initialize upload in case it wasn't done yet
+    setTimeout(() => {
+        if (typeof initializeImageUpload === 'function') {
+            initializeImageUpload();
+        }
+    }, 100);
 };
 
 // Delete Product
