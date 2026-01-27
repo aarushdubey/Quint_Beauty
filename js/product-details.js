@@ -25,6 +25,10 @@ async function loadProductDetails() {
             if (titleEl) titleEl.textContent = product.name;
             document.title = `${product.name} | Quint Beauty`;
 
+            // Update Breadcrumb
+            const breadcrumbSpan = document.querySelector('.breadcrumbs span');
+            if (breadcrumbSpan) breadcrumbSpan.textContent = product.name;
+
             // Update Price
             const priceEl = document.querySelector('.product-price');
             if (priceEl) priceEl.textContent = `₹${parseFloat(product.price).toFixed(2)}`;

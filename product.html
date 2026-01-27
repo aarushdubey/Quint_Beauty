@@ -218,16 +218,15 @@
                     <!-- Description will be loaded here -->
                 </div>
 
-                <div class="actions flex" style="gap: 1.5rem; margin-bottom: 2.5rem; align-items: center;">
-                    <div class="qty-selector flex" style="border: 1px solid #ddd; padding: 0.5rem; border-radius: 4px;">
-                        <button id="qty-minus" style="padding: 0 10px; font-size: 1.2rem; color: #555;">-</button>
-                        <input type="number" id="quantity" value="1" min="1" max="10" readonly
-                            style="width: 40px; text-align: center; border: none; font-size: 1rem; font-family: var(--font-body);">
-                        <button id="qty-plus" style="padding: 0 10px; font-size: 1.2rem; color: #555;">+</button>
+                <div class="actions flex" style="gap: 1.5rem; margin-bottom: 2.5rem; align-items: stretch;">
+                    <div class="qty-selector">
+                        <button id="qty-minus">-</button>
+                        <input type="number" id="quantity" value="1" min="1" max="10" readonly>
+                        <button id="qty-plus">+</button>
                     </div>
                     <button class="btn btn-primary add-to-cart"
-                        style="flex: 1; padding: 1rem 2rem; font-size: 1rem; letter-spacing: 0.1em;">ADD TO
-                        CART</button>
+                        style="flex: 1; padding: 0 2rem; font-size: 1rem; letter-spacing: 0.1em; display: flex; align-items: center; justify-content: center;">ADD
+                        TO CART</button>
                 </div>
 
                 <div id="stockStatus" style="margin-bottom: 1rem; font-size: 0.9rem; color: #666;"></div>
