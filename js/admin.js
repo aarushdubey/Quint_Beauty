@@ -256,12 +256,32 @@ async function loadDashboardData() {
     try {
         // Fetch all orders from Firestore
         const ordersRef = collection(db, 'orders');
-        const q = query(ordersRef, orderBy('date', 'desc'));
-        const querySnapshot = await getDocs(q);
+        let querySnapshot;
+
+        try {
+            // Try with server-side sorting (requires Index)
+            const q = query(ordersRef, orderBy('date', 'desc'));
+            querySnapshot = await getDocs(q);
+        } catch (indexError) {
+            console.warn("Index missing for date sorting, falling back to client-side sort.", indexError);
+            if (indexError.code === 'failed-precondition' || indexError.message.includes('index')) {
+                // Fallback: Fetch without sort
+                querySnapshot = await getDocs(ordersRef);
+            } else {
+                throw indexError; // Re-throw permission errors
+            }
+        }
 
         allOrders = [];
         querySnapshot.forEach((doc) => {
             allOrders.push({ id: doc.id, ...doc.data() });
+        });
+
+        // Client-side sort fallback (if server sort failed or just to be safe)
+        allOrders.sort((a, b) => {
+            const dateA = a.date ? new Date(a.date).getTime() : 0;
+            const dateB = b.date ? new Date(b.date).getTime() : 0;
+            return dateB - dateA;
         });
 
         console.log('Loaded orders:', allOrders.length);
@@ -275,7 +295,11 @@ async function loadDashboardData() {
     } catch (error) {
         console.error('Error loading dashboard data:', error);
         document.getElementById('recentOrdersList').innerHTML =
-            '<p style="text-align: center; padding: 2rem; color: red;">Error loading orders. Please refresh.</p>';
+            `<div style="text-align: center; padding: 2rem; color: #d32f2f; background: #ffebee; border-radius: 8px;">
+                <p><strong>Error loading orders:</strong> ${error.message}</p>
+                <p style="font-size: 0.85rem; margin-top: 0.5rem;">Code: ${error.code || 'unknown'}</p>
+                <button class="btn btn-outline" onclick="location.reload()" style="margin-top: 1rem; border-color: #d32f2f; color: #d32f2f;">Retry</button>
+             </div>`;
     }
 }
 
