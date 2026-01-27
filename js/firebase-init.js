@@ -56,9 +56,12 @@ export async function getUserOrdersFromCloud(userId, userEmail = null) {
         // 2. Secondary: Search by Email variations across common field paths
         const email = userEmail || (auth.currentUser ? auth.currentUser.email : null);
         if (email) {
-            const variations = [email, email.toLowerCase()];
-            const capitalized = email.charAt(0).toUpperCase() + email.slice(1).toLowerCase();
-            if (!variations.includes(capitalized)) variations.push(capitalized);
+            const rawEmail = email.trim(); // Trim original
+            const variations = [rawEmail, rawEmail.toLowerCase()];
+
+            // Add variation without spaces just in case
+            const noSpaces = rawEmail.replace(/\s/g, '').toLowerCase();
+            if (!variations.includes(noSpaces)) variations.push(noSpaces);
 
             // Fetch combinations for each email variation
             variations.forEach(curEmail => {

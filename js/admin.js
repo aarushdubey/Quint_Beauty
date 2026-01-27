@@ -942,7 +942,7 @@ async function syncLegacyOrders() {
 
         userSnapshot.forEach(userDoc => {
             const data = userDoc.data();
-            if (data.email) usersByEmail[data.email.toLowerCase()] = data.uid;
+            if (data.email) usersByEmail[data.email.trim().toLowerCase()] = data.uid;
         });
 
         // 2. Fetch all orders
@@ -955,11 +955,13 @@ async function syncLegacyOrders() {
         orderSnapshot.forEach(orderDoc => {
             const order = orderDoc.data();
             // Try to find email in any possible field
-            const orderEmail = (order.customerInfo?.email || order.email || order.customer_email || '').toLowerCase();
+            let rawOrderEmail = (order.customerInfo?.email || order.email || order.customer_email || '');
+            const orderEmail = rawOrderEmail.trim().toLowerCase();
 
             // If order has no uid, but matches an existing user's registered email
             if (!order.uid && orderEmail && usersByEmail[orderEmail]) {
                 const targetUid = usersByEmail[orderEmail];
+                console.log(`Linking order ${orderDoc.id} (${orderEmail}) to UID ${targetUid}`);
                 const orderRef = doc(db, 'orders', orderDoc.id);
                 updatePromises.push(updateDoc(orderRef, { uid: targetUid }));
                 syncedCount++;
