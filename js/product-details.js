@@ -173,25 +173,7 @@ function addToCart(product, id) {
 function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem('quintCart')) || [];
     const count = cart.reduce((acc, item) => acc + item.quantity, 0);
-
-    // Prefer global refresh if available to keep styles consistent
-    if (typeof window.refreshCartUI === 'function') {
-        window.refreshCartUI();
-        return;
-    }
-
-    // Fallback logic
-    document.querySelectorAll('.cart-count').forEach(el => {
-        el.textContent = count;
-        el.style.display = count > 0 ? 'flex' : 'none';
-
-        // Ensure critical styling is present
-        if (count > 0) {
-            el.style.position = 'absolute';
-            el.style.justifyContent = 'center';
-            el.style.alignItems = 'center';
-        }
-    });
+    document.querySelectorAll('.cart-count').forEach(el => el.textContent = count);
 }
 
 document.addEventListener('DOMContentLoaded', loadProductDetails);
