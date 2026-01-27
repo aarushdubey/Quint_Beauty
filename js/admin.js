@@ -1,10 +1,10 @@
 // Admin Dashboard JavaScript
 import { auth, db } from './firebase-init.js';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { collection, getDocs, query, orderBy, limit, where, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // Authorized admin emails
-const ADMIN_EMAILS = ['beautyquint@gmail.com'];
+const ADMIN_EMAILS = ['beautyquint@gmail.com', 'support@quintbeauty.com', 'aarushdubey@gmail.com'];
 
 let currentUser = null;
 let allOrders = [];
@@ -32,7 +32,8 @@ function setupAuthListeners() {
             await loadDashboardData();
         } else if (user) {
             // Logged in but not admin
-            alert('Access Denied: You are not authorized to access this page.');
+            console.error('Unauthorized access attempt:', user.email);
+            alert(`Access Denied: ${user.email} is not authorized to access this page. Please use an admin account.`);
             await signOut(auth);
             showLogin();
         } else {
@@ -45,6 +46,8 @@ function setupAuthListeners() {
 // Login with Email/Password
 function setupLogin() {
     const loginForm = document.getElementById('adminLoginForm');
+    const googleLoginBtn = document.getElementById('adminGoogleLoginBtn');
+
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -55,6 +58,7 @@ function setupLogin() {
 
             // Disable button and show loading
             loginBtn.disabled = true;
+            const originalText = loginBtn.innerHTML;
             loginBtn.textContent = 'Signing in...';
 
             try {
@@ -64,7 +68,26 @@ function setupLogin() {
                 console.error('Login error:', error);
                 alert('Login failed: ' + error.message);
                 loginBtn.disabled = false;
-                loginBtn.textContent = 'Sign In';
+                loginBtn.innerHTML = originalText;
+            }
+        });
+    }
+
+    if (googleLoginBtn) {
+        googleLoginBtn.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                googleLoginBtn.disabled = true;
+                const originalText = googleLoginBtn.innerHTML;
+                googleLoginBtn.textContent = 'Connecting...';
+
+                await signInWithPopup(auth, provider);
+                console.log('Google Login initiated');
+            } catch (error) {
+                console.error('Google Login error:', error);
+                alert('Google Sign-In failed: ' + error.message);
+                googleLoginBtn.disabled = false;
+                googleLoginBtn.innerHTML = originalText;
             }
         });
     }
