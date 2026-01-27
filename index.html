@@ -18,7 +18,7 @@
     <script src="https://unpkg.com/feather-icons"></script>
 
     <!-- Styles -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=2.0">
 </head>
 
 <body>
@@ -76,52 +76,15 @@
                 <h2>Shop Best Sellers</h2>
             </div>
 
-            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+            <div id="featured-products-grid" class="grid"
+                style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+                <!-- Dynamic Products Loading Placeholder -->
+                <p style="grid-column: 1/-1; text-align: center; color: #999; padding: 2rem;">Loading best sellers...
+                </p>
+            </div>
 
-
-                <!-- Product 1 -->
-                <a href="product.html?id=kajal" class="product-card reveal">
-                    <div class="product-img-wrapper"
-                        style="background: #F9F7F5; height: 400px; display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 1rem;">
-                        <span class="tag"
-                            style="position: absolute; top: 1rem; left: 1rem; background: white; padding: 0.2rem 0.8rem; font-size: 0.8rem; z-index: 2;">New</span>
-                        <img src="assets/images/product-1.jpg" alt="Intense Black Kajal">
-                    </div>
-                    <div class="product-info text-center">
-                        <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Intense Black Kajal</h3>
-                        <p style="color: var(--color-text-muted); margin-bottom: 0.5rem;">₹2.00</p>
-                    </div>
-                </a>
-
-                <!-- Product 2 -->
-                <a href="product.html?id=liquid-lipstick" class="product-card reveal delay-100">
-                    <div class="product-img-wrapper"
-                        style="background: #e8d1c5; height: 400px; display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 1rem;">
-                        <img src="https://images.unsplash.com/photo-1586495777744-4413f21062dc?q=80&w=2630&auto=format&fit=crop"
-                            alt="Quint Beauty Non Transfer Liquid Lipstick">
-                    </div>
-                    <div class="product-info text-center">
-                        <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Non Transfer Liquid Lipstick</h3>
-                        <p style="color: var(--color-text-muted); margin-bottom: 0.5rem;">₹800.00</p>
-                    </div>
-                </a>
-
-                <!-- Product 3 -->
-                <a href="product.html?id=matte-lipstick" class="product-card reveal delay-200">
-                    <div class="product-img-wrapper"
-                        style="background: #fdfdfd; height: 400px; display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 1rem;">
-                        <img src="https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=2680&auto=format&fit=crop"
-                            alt="Creamy Charm Matte Lipstick">
-                    </div>
-                    <div class="product-info text-center">
-                        <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Creamy Charm Matte Lipstick</h3>
-                        <p style="color: var(--color-text-muted); margin-bottom: 0.5rem;">₹1500.00</p>
-                    </div>
-                </a>
-
-                <div class="text-center reveal" style="margin-top: var(--spacing-lg);">
-                    <a href="shop.html" class="btn btn-secondary">View All Products</a>
-                </div>
+            <div class="text-center reveal" style="margin-top: var(--spacing-lg);">
+                <a href="shop.html" class="btn btn-secondary">View All Products</a>
             </div>
     </section>
 
@@ -212,6 +175,7 @@
     </script>
     <script src="js/main.js?v=1.1"></script>
     <!-- Firebase Global Init -->
+    <script type="module" src="js/featured-products.js"></script>
     <script type="module">
         import { initAuthMonitor } from './js/firebase-init.js';
 
