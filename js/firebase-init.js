@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -142,6 +142,16 @@ export function initAuthMonitor(callback) {
             // User is signed in
             window.currentUser = user;
             console.log("User is authenticated:", user.email);
+
+            // Sync User Profile to Firestore (for retroactive linking)
+            const userRef = doc(db, 'users', user.uid);
+            setDoc(userRef, {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL,
+                lastLogin: new Date().toISOString()
+            }, { merge: true }).catch(err => console.warn("Could not sync profile:", err));
 
             // --- MIGRATE GUEST ORDERS TO USER ---
             const guestOrders = JSON.parse(localStorage.getItem('quintOrders')) || [];

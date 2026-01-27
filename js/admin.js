@@ -1,7 +1,7 @@
 // Admin Dashboard JavaScript
 import { auth, db } from './firebase-init.js';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { collection, getDocs, query, orderBy, limit, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { collection, getDocs, query, orderBy, limit, where, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // Authorized admin emails
 const ADMIN_EMAILS = ['beautyquint@gmail.com'];
@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupNavigation();
     setupLogout();
     setupLogin();
+
+    // Legacy sync tool
+    document.getElementById('syncLegacyOrdersBtn')?.addEventListener('click', syncLegacyOrders);
 });
 
 // Auth State Listener
@@ -921,3 +924,61 @@ document.getElementById('productModal')?.addEventListener('click', (e) => {
         closeProductModal();
     }
 });
+
+// --- RETROACTIVE DATA SYNC ---
+async function syncLegacyOrders() {
+    const btn = document.getElementById('syncLegacyOrdersBtn');
+    if (!btn) return;
+
+    btn.disabled = true;
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = 'Syncing...';
+
+    try {
+        // 1. Get all registered users from the 'users' collection
+        const usersRef = collection(db, 'users');
+        const userSnapshot = await getDocs(usersRef);
+        const usersByEmail = {};
+
+        userSnapshot.forEach(userDoc => {
+            const data = userDoc.data();
+            if (data.email) usersByEmail[data.email.toLowerCase()] = data.uid;
+        });
+
+        // 2. Fetch all orders
+        const ordersRef = collection(db, 'orders');
+        const orderSnapshot = await getDocs(ordersRef);
+
+        let syncedCount = 0;
+        const updatePromises = [];
+
+        orderSnapshot.forEach(orderDoc => {
+            const order = orderDoc.data();
+            // Try to find email in any possible field
+            const orderEmail = (order.customerInfo?.email || order.email || order.customer_email || '').toLowerCase();
+
+            // If order has no uid, but matches an existing user's registered email
+            if (!order.uid && orderEmail && usersByEmail[orderEmail]) {
+                const targetUid = usersByEmail[orderEmail];
+                const orderRef = doc(db, 'orders', orderDoc.id);
+                updatePromises.push(updateDoc(orderRef, { uid: targetUid }));
+                syncedCount++;
+            }
+        });
+
+        if (updatePromises.length > 0) {
+            await Promise.all(updatePromises);
+            alert(`Success! Linked ${syncedCount} historical guest orders to registered user accounts.`);
+            await loadDashboardData();
+        } else {
+            alert('Everything is already synced! No guest orders matching registered users found.');
+        }
+
+    } catch (e) {
+        console.error('Sync error:', e);
+        alert('Error syncing data: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+    }
+}
