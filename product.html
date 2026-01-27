@@ -144,28 +144,6 @@
             border-bottom-color: black;
             opacity: 1;
         }
-
-        /* FIX: Force Cart Count Visibility */
-        .cart-icon {
-            position: relative;
-        }
-
-        .cart-count {
-            position: absolute;
-            top: -5px;
-            right: -8px;
-            background-color: var(--color-text-main) !important;
-            color: white !important;
-            font-size: 10px;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            display: flex;
-            /* Default flex, JS will toggle */
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
     </style>
 
 </head>
@@ -194,15 +172,18 @@
                             <div class="thumb active"
                                 onclick="changeImage(this, 'https://images.unsplash.com/photo-1620802051782-959c299e984a?q=80&w=2632&auto=format&fit=crop')">
                                 <img src="https://images.unsplash.com/photo-1620802051782-959c299e984a?q=80&w=2632&auto=format&fit=crop"
-                                    alt="Thumb 1"></div>
+                                    alt="Thumb 1">
+                            </div>
                             <div class="thumb"
                                 onclick="changeImage(this, 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2671&auto=format&fit=crop')">
                                 <img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2671&auto=format&fit=crop"
-                                    alt="Thumb 2"></div>
+                                    alt="Thumb 2">
+                            </div>
                             <div class="thumb"
                                 onclick="changeImage(this, 'https://images.unsplash.com/photo-1596704017382-30538638b44d?q=80&w=2069&auto=format&fit=crop')">
                                 <img src="https://images.unsplash.com/photo-1596704017382-30538638b44d?q=80&w=2069&auto=format&fit=crop"
-                                    alt="Thumb 3"></div>
+                                    alt="Thumb 3">
+                            </div>
                         </div>
                     </div>
                     < !-- Product Details -->
@@ -211,7 +192,8 @@
                                 style="color: #666; font-size: 0.85rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
                                 <a href="index.html" style="color: #888;">Home</a>/ <a href="shop.html"
                                     style="color: #888;">Shop</a>/ <span style="color: #333; font-weight: 500;">Product
-                                    Details</span></p>
+                                    Details</span>
+                            </p>
                             <h1 class="product-title"
                                 style="font-size: 2.5rem; margin-bottom: 0.5rem; letter-spacing: -0.02em;">Loading...
                             </h1>

@@ -430,7 +430,7 @@ footer {
 
 .cart-count {
     position: absolute;
-    top: -8px;
+    top: -5px;
     right: -8px;
     background-color: var(--color-text-main);
     color: var(--color-white);
@@ -438,12 +438,13 @@ footer {
     min-width: 18px;
     height: 18px;
     border-radius: 50%;
-    display: flex;
+    display: none; /* Changed from flex to none by default, JS toggles it */
     justify-content: center;
     align-items: center;
     font-weight: 500;
     padding: 0 4px;
     line-height: 1;
+    z-index: 10;
 }
 
 /* Product Page Styles */
