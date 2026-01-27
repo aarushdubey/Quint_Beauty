@@ -41,59 +41,62 @@ export async function saveOrderToCloud(userId, orderData) {
     }
 }
 
-// 2. Get User Orders from Cloud
-// 2. Get User Orders from Cloud
+// 2. Get User Orders from Cloud (Resilient Multi-Path Search)
 export async function getUserOrdersFromCloud(userId, userEmail = null) {
     try {
         const ordersRef = collection(db, "orders");
         const ordersMap = new Map();
-
-        // Promise list for parallel queries
         const queryPromises = [];
 
-        // Query 1: By User ID (New orders)
-        queryPromises.push(getDocs(query(ordersRef, where("uid", "==", userId))));
-
-        // Query 2: By Email (Old/Guest orders linked to valid email)
-        // If userEmail is provided (or fallback to auth.currentUser)
-        const email = userEmail || (auth.currentUser ? auth.currentUser.email : null);
-
-        if (email) {
-            const lower = email.toLowerCase();
-            const upperFirst = lower.charAt(0).toUpperCase() + lower.slice(1);
-
-            // 1. Exact match
-            queryPromises.push(getDocs(query(ordersRef, where("customerInfo.email", "==", email))));
-
-            // 2. Lowercase match (if different from exact)
-            if (lower !== email) {
-                queryPromises.push(getDocs(query(ordersRef, where("customerInfo.email", "==", lower))));
-            }
-
-            // 3. Title case match (e.g. "Name@...") (if different)
-            if (upperFirst !== email && upperFirst !== lower) {
-                queryPromises.push(getDocs(query(ordersRef, where("customerInfo.email", "==", upperFirst))));
-            }
+        // 1. Primary: Search by Authenticated User ID
+        if (userId) {
+            queryPromises.push(getDocs(query(ordersRef, where("uid", "==", userId))));
         }
 
-        const snapshots = await Promise.all(queryPromises);
+        // 2. Secondary: Search by Email variations across common field paths
+        const email = userEmail || (auth.currentUser ? auth.currentUser.email : null);
+        if (email) {
+            const variations = [email, email.toLowerCase()];
+            const capitalized = email.charAt(0).toUpperCase() + email.slice(1).toLowerCase();
+            if (!variations.includes(capitalized)) variations.push(capitalized);
 
-        snapshots.forEach(snapshot => {
-            snapshot.forEach(doc => {
-                // Use Map to deduplicate by Doc ID
-                ordersMap.set(doc.id, { id: doc.id, ...doc.data() });
+            // Fetch combinations for each email variation
+            variations.forEach(curEmail => {
+                // Try three most likely schema paths for email storage
+                queryPromises.push(getDocs(query(ordersRef, where("customerInfo.email", "==", curEmail))));
+                queryPromises.push(getDocs(query(ordersRef, where("email", "==", curEmail))));
+                queryPromises.push(getDocs(query(ordersRef, where("customer_email", "==", curEmail))));
             });
+        }
+
+        // Execute queries in parallel, catching errors per-query (e.g. missing index)
+        const snapshots = await Promise.all(
+            queryPromises.map(p => p.catch(err => {
+                console.warn("An individual order query failed or requires an index:", err);
+                return { forEach: () => { } }; // Return empty result set
+            }))
+        );
+
+        // Populate map to deduplicate orders by Firestore Document ID
+        snapshots.forEach(snapshot => {
+            if (snapshot && typeof snapshot.forEach === 'function') {
+                snapshot.forEach(doc => {
+                    ordersMap.set(doc.id, { id: doc.id, ...doc.data() });
+                });
+            }
         });
 
-        // Convert to array and sort by date descending
-        const orders = Array.from(ordersMap.values()).sort((a, b) => {
-            return new Date(b.date) - new Date(a.date);
+        // Convert to array and sort by date descending (Safely)
+        const sortedOrders = Array.from(ordersMap.values()).sort((a, b) => {
+            const dateA = a.date ? new Date(a.date).getTime() : 0;
+            const dateB = b.date ? new Date(b.date).getTime() : 0;
+            return dateB - dateA;
         });
 
-        return orders;
-    } catch (e) {
-        console.error("Error getting documents: ", e);
-        // Fallback to local storage logic handled by caller if empty
+        console.log(`Cloud sync complete. ${sortedOrders.length} orders found for ${email || userId}`);
+        return sortedOrders;
+    } catch (error) {
+        console.error("Fatal error in getUserOrdersFromCloud:", error);
         return [];
     }
 }
