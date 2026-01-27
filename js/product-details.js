@@ -21,16 +21,16 @@ async function loadProductDetails() {
             console.log('Product data:', product);
 
             // Update Title
-            const titleEl = document.querySelector('.product-details h1');
+            const titleEl = document.querySelector('.product-title');
             if (titleEl) titleEl.textContent = product.name;
             document.title = `${product.name} | Quint Beauty`;
 
             // Update Price
-            const priceEl = document.querySelector('.product-details .price');
+            const priceEl = document.querySelector('.product-price');
             if (priceEl) priceEl.textContent = `₹${parseFloat(product.price).toFixed(2)}`;
 
             // Update Description
-            const descEl = document.querySelector('.product-details p');
+            const descEl = document.querySelector('.product-description');
             if (descEl) descEl.textContent = product.description;
 
             // Update Main Image
@@ -47,6 +47,29 @@ async function loadProductDetails() {
                 img.alt = product.name;
             });
 
+            // Quantity Selector Logic
+            const qtyMinus = document.getElementById('qty-minus');
+            const qtyPlus = document.getElementById('qty-plus');
+            const qtyInput = document.getElementById('quantity');
+
+            if (qtyMinus && qtyPlus && qtyInput) {
+                // Remove old listeners by cloning (if needed, but id selection is unique)
+                const newMinus = qtyMinus.cloneNode(true);
+                qtyMinus.parentNode.replaceChild(newMinus, qtyMinus);
+                const newPlus = qtyPlus.cloneNode(true);
+                qtyPlus.parentNode.replaceChild(newPlus, qtyPlus);
+
+                newMinus.addEventListener('click', () => {
+                    let val = parseInt(qtyInput.value);
+                    if (val > 1) qtyInput.value = val - 1;
+                });
+
+                newPlus.addEventListener('click', () => {
+                    let val = parseInt(qtyInput.value);
+                    if (val < 10) qtyInput.value = val + 1;
+                });
+            }
+
             // Handle Stock
             const addToCartBtn = document.querySelector('.add-to-cart');
             if (addToCartBtn) {
@@ -57,9 +80,6 @@ async function loadProductDetails() {
                 addToCartBtn.style.cursor = 'pointer';
 
                 // Add click event for cart
-                // We'll attach a custom event listener that overrides the one in main.js or works alongside it.
-                // Since main.js uses productsDB, we need to handle "Add to Cart" here for Firestore products.
-
                 // Remove old listeners (cloning trick)
                 const newBtn = addToCartBtn.cloneNode(true);
                 addToCartBtn.parentNode.replaceChild(newBtn, addToCartBtn);
@@ -77,9 +97,11 @@ async function loadProductDetails() {
             }
 
         } else {
-            console.log('Product not found in Firestore, checking legacy DB...');
-            // Optional: fallback to main.js logic if not found (already handled by main.js running first)
-            // But main.js runs on DOMContentLoaded as well. 
+            console.log('Product not found in Firestore');
+            const container = document.querySelector('.product-details');
+            if (container) {
+                container.innerHTML = '<p>Product not found.</p>';
+            }
         }
     } catch (error) {
         console.error('Error loading product details:', error);

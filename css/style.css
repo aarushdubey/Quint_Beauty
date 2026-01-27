@@ -445,3 +445,22 @@ footer {
     padding: 0 4px;
     line-height: 1;
 }
+
+/* Product Page Styles */
+.product-description {
+    white-space: pre-line;
+    /* Preserves newlines but collapses spacing */
+    line-height: 1.8;
+    color: var(--color-text-muted);
+    font-size: 1.05rem;
+    margin-bottom: 2rem;
+}
+
+.qty-selector button {
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.qty-selector button:hover {
+    color: var(--color-text-main) !important;
+}
