@@ -131,9 +131,22 @@
 
             <!-- Dashboard Page -->
             <div id="dashboardPage" class="admin-page active">
-                <div class="page-header">
-                    <h2>Dashboard Overview</h2>
-                    <p class="page-subtitle">Welcome back! Here's what's happening today.</p>
+                <div class="page-header" style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <h2>Dashboard Overview</h2>
+                        <p class="page-subtitle">Welcome back! Here's what's happening today.</p>
+                    </div>
+                    <button class="btn btn-outline" onclick="window.location.reload()"
+                        style="color: #666; border-color: #ddd;">
+                        <i data-feather="refresh-cw" style="width: 16px; height: 16px; margin-right: 0.5rem;"></i>
+                        Refresh
+                    </button>
+                    <!-- Added Main Logout Button -->
+                    <button id="adminLogoutBtnMain" class="btn btn-outline"
+                        style="border-color: #d32f2f; color: #d32f2f; margin-left: 10px;">
+                        <i data-feather="log-out" style="width: 16px; height: 16px; margin-right: 0.5rem;"></i>
+                        Logout
+                    </button>
                 </div>
 
                 <div class="stats-grid">

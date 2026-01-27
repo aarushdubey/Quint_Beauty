@@ -102,14 +102,17 @@ function setupLogin() {
 
 // Logout
 function setupLogout() {
-    document.getElementById('adminLogoutBtn')?.addEventListener('click', async () => {
+    const logoutHandler = async () => {
         try {
             await signOut(auth);
             showLogin();
         } catch (error) {
             console.error('Logout error:', error);
         }
-    });
+    };
+
+    document.getElementById('adminLogoutBtn')?.addEventListener('click', logoutHandler);
+    document.getElementById('adminLogoutBtnMain')?.addEventListener('click', logoutHandler);
 }
 
 // Show/Hide Screens
