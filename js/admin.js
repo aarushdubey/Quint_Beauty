@@ -51,34 +51,9 @@ function setupAuthListeners() {
 }
 
 // Login with Email/Password
+// Login with Email/Password (Deprecated) -> Now Google Only
 function setupLogin() {
-    const loginForm = document.getElementById('adminLoginForm');
     const googleLoginBtn = document.getElementById('adminGoogleLoginBtn');
-
-    if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const email = document.getElementById('adminEmail').value;
-            const password = document.getElementById('adminPassword').value;
-            const loginBtn = document.getElementById('adminLoginBtn');
-
-            // Disable button and show loading
-            loginBtn.disabled = true;
-            const originalText = loginBtn.innerHTML;
-            loginBtn.textContent = 'Signing in...';
-
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                console.log('Login successful!');
-            } catch (error) {
-                console.error('Login error:', error);
-                alert('Login failed: ' + error.message);
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = originalText;
-            }
-        });
-    }
 
     if (googleLoginBtn) {
         googleLoginBtn.addEventListener('click', async () => {
@@ -98,6 +73,7 @@ function setupLogin() {
             }
         });
     }
+}
 }
 
 // Logout
