@@ -42,17 +42,40 @@ export async function saveOrderToCloud(userId, orderData) {
 }
 
 // 2. Get User Orders from Cloud
-export async function getUserOrdersFromCloud(userId) {
+// 2. Get User Orders from Cloud
+export async function getUserOrdersFromCloud(userId, userEmail = null) {
     try {
         const ordersRef = collection(db, "orders");
-        // Query: Get orders where uid == userId
-        const q = query(ordersRef, where("uid", "==", userId), orderBy("date", "desc"));
+        const ordersMap = new Map();
 
-        const querySnapshot = await getDocs(q);
-        let orders = [];
-        querySnapshot.forEach((doc) => {
-            orders.push({ id: doc.id, ...doc.data() });
+        // Promise list for parallel queries
+        const queryPromises = [];
+
+        // Query 1: By User ID (New orders)
+        queryPromises.push(getDocs(query(ordersRef, where("uid", "==", userId))));
+
+        // Query 2: By Email (Old/Guest orders linked to valid email)
+        // If userEmail is provided (or fallback to auth.currentUser)
+        const email = userEmail || (auth.currentUser ? auth.currentUser.email : null);
+
+        if (email) {
+            queryPromises.push(getDocs(query(ordersRef, where("customerInfo.email", "==", email))));
+        }
+
+        const snapshots = await Promise.all(queryPromises);
+
+        snapshots.forEach(snapshot => {
+            snapshot.forEach(doc => {
+                // Use Map to deduplicate by Doc ID
+                ordersMap.set(doc.id, { id: doc.id, ...doc.data() });
+            });
         });
+
+        // Convert to array and sort by date descending
+        const orders = Array.from(ordersMap.values()).sort((a, b) => {
+            return new Date(b.date) - new Date(a.date);
+        });
+
         return orders;
     } catch (e) {
         console.error("Error getting documents: ", e);

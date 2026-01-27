@@ -348,7 +348,7 @@
                 if (window.getUserOrdersFromCloud) {
                     try {
                         console.log("Fetching orders from Cloud Firestore...");
-                        orders = await window.getUserOrdersFromCloud(user.uid);
+                        orders = await window.getUserOrdersFromCloud(user.uid, user.email);
                     } catch (e) { console.error("Cloud fetch failed", e); }
                 }
 
