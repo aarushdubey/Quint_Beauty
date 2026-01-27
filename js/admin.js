@@ -432,6 +432,7 @@ const IMGBB_API_KEY = '936f516a5f95c452991da863a0bc841d';
 // Track if image upload has been initialized
 let imageUploadInitialized = false;
 let currentImageFiles = []; // Store selected files here
+let existingImageUrls = []; // Store existing URLs when editing
 
 // Initialize drag & drop functionality
 
@@ -502,8 +503,11 @@ function handleImageFiles(files) {
     const fileArray = Array.from(files);
 
     // Check limit
-    if (currentImageFiles.length + fileArray.length > 6) {
+    const totalCurrent = existingImageUrls.length + currentImageFiles.length;
+
+    if (totalCurrent + fileArray.length > 6) {
         alert('You can only upload up to 6 images.');
+        document.getElementById('productImageFile').value = '';
         return;
     }
 
@@ -536,13 +540,15 @@ function renderPreviews() {
 
     container.innerHTML = '';
 
-    // Always keep drop zone content visible to allow adding more images
+    const totalCount = existingImageUrls.length + currentImageFiles.length;
+
+    // Always keep drop zone content visible
     if (dropContent) {
         dropContent.style.display = 'block';
         const p = dropContent.querySelector('p');
         if (p) {
-            if (currentImageFiles.length > 0) {
-                p.textContent = currentImageFiles.length >= 6 ? 'Maximum images reached' : 'Click to add more images';
+            if (totalCount > 0) {
+                p.textContent = totalCount >= 6 ? 'Maximum images reached' : 'Click to add more images';
                 p.style.fontWeight = 'bold';
                 p.style.color = '#1976d2';
             } else {
@@ -553,64 +559,78 @@ function renderPreviews() {
         }
     }
 
-    if (currentImageFiles.length > 0) {
+    if (totalCount > 0) {
         container.style.display = 'grid';
         if (actions) actions.style.display = 'block';
 
+        // Render Existing
+        existingImageUrls.forEach((url, index) => {
+            createPreviewItem(container, url, true, index);
+        });
+
+        // Render New
         currentImageFiles.forEach((file, index) => {
-            const reader = new FileReader();
-
-            const div = document.createElement('div');
-            div.style.position = 'relative';
-            div.style.borderRadius = '8px';
-            div.style.overflow = 'hidden';
-            div.style.aspectRatio = '1/1';
-            div.style.border = '1px solid #ddd';
-
-            const img = document.createElement('img');
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
-
-            const removeBtn = document.createElement('button');
-            removeBtn.innerHTML = '&times;';
-            removeBtn.style.position = 'absolute';
-            removeBtn.style.top = '5px';
-            removeBtn.style.right = '5px';
-            removeBtn.style.background = 'rgba(255,0,0,0.8)';
-            removeBtn.style.color = 'white';
-            removeBtn.style.border = 'none';
-            removeBtn.style.borderRadius = '50%';
-            removeBtn.style.width = '24px';
-            removeBtn.style.height = '24px';
-            removeBtn.style.cursor = 'pointer';
-            removeBtn.style.display = 'flex';
-            removeBtn.style.alignItems = 'center';
-            removeBtn.style.justifyContent = 'center';
-
-            removeBtn.onclick = (e) => {
-                e.stopPropagation();
-                currentImageFiles.splice(index, 1);
-                renderPreviews();
-                // Reset input to allow adding same file again if removed
-                const fileInput = document.getElementById('productImageFile');
-                if (fileInput) fileInput.value = '';
-            };
-
-            reader.onload = (e) => {
-                img.src = e.target.result;
-            };
-
-            reader.readAsDataURL(file);
-
-            div.appendChild(img);
-            div.appendChild(removeBtn);
-            container.appendChild(div);
+            createPreviewItem(container, file, false, index);
         });
     } else {
         container.style.display = 'none';
         if (actions) actions.style.display = 'none';
     }
+}
+
+function createPreviewItem(container, source, isExisting, index) {
+    const div = document.createElement('div');
+    div.style.position = 'relative';
+    div.style.borderRadius = '8px';
+    div.style.overflow = 'hidden';
+    div.style.aspectRatio = '1/1';
+    div.style.border = '1px solid #ddd';
+    div.style.background = '#f9f9f9';
+
+    const img = document.createElement('img');
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.objectFit = 'cover';
+
+    if (isExisting) {
+        img.src = source;
+    } else {
+        const reader = new FileReader();
+        reader.onload = (e) => img.src = e.target.result;
+        reader.readAsDataURL(source);
+    }
+
+    const removeBtn = document.createElement('button');
+    removeBtn.innerHTML = '&times;';
+    removeBtn.style.position = 'absolute';
+    removeBtn.style.top = '5px';
+    removeBtn.style.right = '5px';
+    removeBtn.style.background = 'rgba(255,0,0,0.8)';
+    removeBtn.style.color = 'white';
+    removeBtn.style.border = 'none';
+    removeBtn.style.borderRadius = '50%';
+    removeBtn.style.width = '24px';
+    removeBtn.style.height = '24px';
+    removeBtn.style.cursor = 'pointer';
+    removeBtn.style.display = 'flex';
+    removeBtn.style.alignItems = 'center';
+    removeBtn.style.justifyContent = 'center';
+
+    removeBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (isExisting) {
+            existingImageUrls.splice(index, 1);
+        } else {
+            currentImageFiles.splice(index, 1);
+            const fileInput = document.getElementById('productImageFile');
+            if (fileInput) fileInput.value = '';
+        }
+        renderPreviews();
+    };
+
+    div.appendChild(img);
+    div.appendChild(removeBtn);
+    container.appendChild(div);
 }
 
 // Upload image to ImgBB
@@ -647,6 +667,7 @@ async function uploadImageToImgBB(file) {
 document.getElementById('addProductBtn')?.addEventListener('click', () => {
     editingProductId = null;
     currentImageFiles = []; // Clear any previous files
+    existingImageUrls = []; // Clear existing URLs
     document.getElementById('productModalTitle').textContent = 'Add New Product';
     document.getElementById('productSubmitText').textContent = 'Add Product';
     document.getElementById('productForm').reset();
@@ -676,6 +697,7 @@ window.closeProductModal = function () {
     document.getElementById('productModal').classList.remove('active');
     editingProductId = null;
     currentImageFiles = [];
+    existingImageUrls = [];
 };
 
 // Submit Product Form
@@ -687,7 +709,7 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
     const originalText = submitBtn.textContent;
 
     try {
-        let imageUrls = [];
+        let imageUrls = [...existingImageUrls];
 
         console.log('Stored image files:', currentImageFiles);
 
@@ -711,14 +733,7 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
             }
         }
 
-        // If we didn't upload new files, check if there's an existing legacy image
-        // (Improving edit flow would require populating currentImageFiles or a separate existingUrls array)
-        if (imageUrls.length === 0) {
-            const hiddenImage = document.getElementById('productImage').value;
-            if (hiddenImage) {
-                imageUrls.push(hiddenImage);
-            }
-        }
+
 
         console.log('Final image URLs:', imageUrls);
 
@@ -778,6 +793,9 @@ window.editProduct = function (productId) {
     editingProductId = productId;
     currentImageFiles = []; // Clear new files list
 
+    // Populate existing images
+    existingImageUrls = product.images || (product.image ? [product.image] : []);
+
     document.getElementById('productModalTitle').textContent = 'Edit Product';
     document.getElementById('productSubmitText').textContent = 'Update Product';
 
@@ -786,27 +804,10 @@ window.editProduct = function (productId) {
     document.getElementById('productPrice').value = product.price;
     document.getElementById('productStock').value = product.stock;
     document.getElementById('productCategory').value = product.category;
-    document.getElementById('productImage').value = product.image;
+    document.getElementById('productImage').value = product.image || '';
 
-    // Reset preview area
-    const container = document.getElementById('imagePreviewContainer');
-    const actions = document.getElementById('imagePreviewActions');
-    const dropContent = document.getElementById('dropZoneContent');
-
-    if (container) {
-        container.innerHTML = '';
-        container.style.display = 'none';
-    }
-    if (actions) actions.style.display = 'none';
-    if (dropContent) {
-        dropContent.style.display = 'block';
-        const p = dropContent.querySelector('p');
-        if (p) {
-            p.textContent = 'Click to upload new images';
-            p.style.fontWeight = '500';
-            p.style.color = 'black';
-        }
-    }
+    // Render previews
+    renderPreviews();
 
     document.getElementById('productModal').classList.add('active');
 
