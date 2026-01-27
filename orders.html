@@ -371,7 +371,7 @@
                             <i data-feather="shopping-bag" style="width: 48px; height: 48px;"></i>
                         </div>
                         <h3 style="margin-bottom: 1rem;">No orders found</h3>
-                        <p style="color: #777; margin-bottom: 2rem;">Hi ${user.displayName.split(' ')[0]}, you haven't placed any orders with this account yet.</p>
+                        <p style="color: #777; margin-bottom: 2rem;">Hi ${(user.displayName || 'there').split(' ')[0]}, you haven't placed any orders with this account yet.</p>
                         <a href="shop.html" class="btn btn-primary">Start Shopping</a>
                     </div>
                 `;

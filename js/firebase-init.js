@@ -59,7 +59,21 @@ export async function getUserOrdersFromCloud(userId, userEmail = null) {
         const email = userEmail || (auth.currentUser ? auth.currentUser.email : null);
 
         if (email) {
+            const lower = email.toLowerCase();
+            const upperFirst = lower.charAt(0).toUpperCase() + lower.slice(1);
+
+            // 1. Exact match
             queryPromises.push(getDocs(query(ordersRef, where("customerInfo.email", "==", email))));
+
+            // 2. Lowercase match (if different from exact)
+            if (lower !== email) {
+                queryPromises.push(getDocs(query(ordersRef, where("customerInfo.email", "==", lower))));
+            }
+
+            // 3. Title case match (e.g. "Name@...") (if different)
+            if (upperFirst !== email && upperFirst !== lower) {
+                queryPromises.push(getDocs(query(ordersRef, where("customerInfo.email", "==", upperFirst))));
+            }
         }
 
         const snapshots = await Promise.all(queryPromises);
