@@ -84,18 +84,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 to_email: 'beautyquint@gmail.com'
             };
 
-            emailjs.send('service_xrl22yi', 'template_ryjw82n', {
+            const name = params.from_name;
+            const email = params.from_email;
+            const subject = params.subject;
+            const message = params.message;
+
+            // Use customer template (template_5zwuogh) which is simpler
+            emailjs.send('service_xrl22yi', 'template_5zwuogh', {
                 to_email: 'beautyquint@gmail.com',
-                admin_email: 'beautyquint@gmail.com',
-                customer_name: params.from_name,
-                customer_email: params.from_email,
-                customer_phone: 'Not Provided',
-                customer_address: 'Contact Form Inquiry',
-                order_id: 'Inquiry: ' + params.subject,
-                order_items_html: '<p>' + params.message.replace(/\n/g, '<br>') + '</p>',
-                cost_total: '0.00',
-                payment_id: 'N/A',
-                order_date: new Date().toLocaleString()
+                email: 'beautyquint@gmail.com',
+                customer_name: name,
+                order_id: 'Contact: ' + subject,
+                order_items_html: `
+                    <div style="padding: 15px; background: #f9f9f9; border-radius: 5px;">
+                        <p><strong>From:</strong> ${name} (${email})</p>
+                        <p><strong>Subject:</strong> ${subject}</p>
+                        <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ddd;">
+                        <p><strong>Message:</strong></p>
+                        <p style="white-space: pre-wrap;">${message}</p>
+                    </div>
+                `,
+                cost_shipping: '0.00',
+                cost_tax: '0.00',
+                cost_total: '0.00'
             })
                 .then(function () {
                     alert('Message sent successfully!');
