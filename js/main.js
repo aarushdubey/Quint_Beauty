@@ -487,9 +487,10 @@ async function initiateRazorpayPayment(totalAmount) {
             description: 'Order Payment',
             image: RAZORPAY_CONFIG.company_logo || '',
 
-            // --- SECURITY FIX: Pass the Server-Generated Order ID ---
-            order_id: orderData.id,
-            // --------------------------------------------------------
+            // --- REDIRECT FIX: Ensure user is redirected even if tab reloads ---
+            callback_url: window.location.origin + '/verify-payment.php',
+            redirect: true,
+            // -------------------------------------------------------------------
 
             prefill: {
                 name: formData.firstName + ' ' + formData.lastName,
@@ -499,17 +500,14 @@ async function initiateRazorpayPayment(totalAmount) {
 
             notes: {
                 address: formData.address,
-                items: cart.map(item => `${item.name} (${item.quantity}x)`).join(', ')
+                items_summary: cart.map(i => `${i.name} (x${i.quantity})`).join(', ')
             },
 
             theme: {
                 color: RAZORPAY_CONFIG.theme_color
             },
 
-            handler: function (response) {
-                handlePaymentSuccess(response, formData, cart, totalAmount);
-            },
-
+            // Note: 'handler' is ignored when callback_url is present
             modal: {
                 ondismiss: function () {
                     console.log('Payment cancelled by user');
