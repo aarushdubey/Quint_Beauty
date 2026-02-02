@@ -47,86 +47,93 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuBtn = document.querySelector('.mobile-menu-btn');
     const navLinks = document.querySelector('.nav-links');
 
-}
+    if (menuBtn) {
+        menuBtn.addEventListener('click', () => {
+            if (navLinks.style.display === 'flex') {
+                navLinks.style.display = 'none';
+            } else {
+                navLinks.style.display = 'flex';
+                navLinks.style.flexDirection = 'column';
+                navLinks.style.position = 'absolute';
+                navLinks.style.top = '100%';
+                navLinks.style.left = '0';
+                navLinks.style.width = '100%';
+                navLinks.style.background = 'white';
+                navLinks.style.padding = '1rem';
+                navLinks.style.boxShadow = '0 5px 10px rgba(0,0,0,0.1)';
+            }
         });
     }
 
-// Contact Form Handling (New)
-const contactForm = document.getElementById('contactForm');
-if (contactForm) {
-    contactForm.addEventListener('submit', function (e) {
-        e.preventDefault();
+    // Contact Form Handling
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+        contactForm.addEventListener('submit', function (e) {
+            e.preventDefault();
 
-        const btn = contactForm.querySelector('button[type="submit"]');
-        const originalText = btn.textContent;
-        btn.textContent = 'Sending...';
-        btn.disabled = true;
+            const btn = contactForm.querySelector('button[type="submit"]');
+            const originalText = btn.textContent;
+            btn.textContent = 'Sending...';
+            btn.disabled = true;
 
-        const params = {
-            from_name: document.getElementById('contactName').value,
-            from_email: document.getElementById('contactEmail').value,
-            subject: document.getElementById('contactSubject').value,
-            message: document.getElementById('contactMessage').value,
-            to_email: 'beautyquint@gmail.com' // Admin email
-        };
+            const params = {
+                from_name: document.getElementById('contactName').value,
+                from_email: document.getElementById('contactEmail').value,
+                subject: document.getElementById('contactSubject').value,
+                message: document.getElementById('contactMessage').value,
+                to_email: 'beautyquint@gmail.com'
+            };
 
-        // Using your existing service and a generic template (or the admin one)
-        // Assuming template_ryjw82n (Admin Notification) can handle generic keys 
-        // or we add a new template ID for contact form.
-        // For now I'll use the same service.
-
-        emailjs.send('service_xrl22yi', 'template_ryjw82n', {
-            to_email: 'beautyquint@gmail.com',     // Required
-            admin_email: 'beautyquint@gmail.com',  // Required
-            customer_name: params.from_name,
-            customer_email: params.from_email,
-            customer_phone: 'Not Provided',
-            customer_address: 'Contact Form Inquiry',
-            order_id: 'Inquiry: ' + params.subject,
-            order_items_html: '<p>' + params.message.replace(/\n/g, '<br>') + '</p>',
-            cost_total: '0.00',
-            payment_id: 'N/A',
-            order_date: new Date().toLocaleString()
-        })
-            .then(function () {
-                alert('Message sent successfully!');
-                contactForm.reset();
-                btn.textContent = 'Message Sent';
-                setTimeout(() => {
+            emailjs.send('service_xrl22yi', 'template_ryjw82n', {
+                to_email: 'beautyquint@gmail.com',
+                admin_email: 'beautyquint@gmail.com',
+                customer_name: params.from_name,
+                customer_email: params.from_email,
+                customer_phone: 'Not Provided',
+                customer_address: 'Contact Form Inquiry',
+                order_id: 'Inquiry: ' + params.subject,
+                order_items_html: '<p>' + params.message.replace(/\n/g, '<br>') + '</p>',
+                cost_total: '0.00',
+                payment_id: 'N/A',
+                order_date: new Date().toLocaleString()
+            })
+                .then(function () {
+                    alert('Message sent successfully!');
+                    contactForm.reset();
+                    btn.textContent = 'Message Sent';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.disabled = false;
+                    }, 3000);
+                }, function (error) {
+                    console.error('Failed to send message:', error);
+                    alert('Failed to send message. Please try again or email us directly.');
                     btn.textContent = originalText;
                     btn.disabled = false;
-                }, 3000);
-            }, function (error) {
-                console.error('Failed to send message:', error);
-                alert('Failed to send message. Please try again or email us directly.');
-                btn.textContent = originalText;
-                btn.disabled = false;
-            });
-    });
-}
+                });
+        });
+    }
 
-// Initialize Cart State
+    // Initialize Cart State
+    refreshCartUI();
 
-// Initialize Cart State
-refreshCartUI();
+    // Setup Add to Cart Buttons
+    setupAddToCartButtons();
 
-// Setup Add to Cart Buttons
-setupAddToCartButtons();
+    // Render Cart Page if we are on it
+    if (document.querySelector('.cart-table')) {
+        renderCartPage();
+    }
 
-// Render Cart Page if we are on it
-if (document.querySelector('.cart-table')) {
-    renderCartPage();
-}
+    // Render Checkout Page if we are on it
+    if (document.querySelector('.order-summary-box')) {
+        renderCheckoutPage();
+    }
 
-// Render Checkout Page if we are on it
-if (document.querySelector('.order-summary-box')) {
-    renderCheckoutPage();
-}
-
-// Initialize on load
-if (window.initRevealAnimations) {
-    window.initRevealAnimations();
-}
+    // Initialize on load
+    if (window.initRevealAnimations) {
+        window.initRevealAnimations();
+    }
 });
 
 // Scroll Animation Observer (Global)
