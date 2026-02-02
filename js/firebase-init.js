@@ -44,16 +44,30 @@ export async function saveOrderToCloud(userId, orderData) {
 // 2. Get User Orders from Cloud (Resilient Multi-Path Search)
 export async function getUserOrdersFromCloud(userId, userEmail = null) {
     try {
-        const ordersRef = collection(db, "orders");
         const ordersMap = new Map();
         const queryPromises = [];
 
-        // 1. Primary: Search by Authenticated User ID
+        // 0. PRIMARY: Fetch from user's subcollection (users/{uid}/orders)
+        if (userId) {
+            try {
+                const userOrdersRef = collection(db, "users", userId, "orders");
+                const userOrdersSnapshot = await getDocs(userOrdersRef);
+                userOrdersSnapshot.forEach(doc => {
+                    ordersMap.set(doc.id, { id: doc.id, ...doc.data() });
+                });
+                console.log(`Found ${userOrdersSnapshot.size} orders in user subcollection`);
+            } catch (err) {
+                console.warn("Failed to fetch from user subcollection:", err);
+            }
+        }
+
+        // 1. SECONDARY: Search root orders collection by UID
+        const ordersRef = collection(db, "orders");
         if (userId) {
             queryPromises.push(getDocs(query(ordersRef, where("uid", "==", userId))));
         }
 
-        // 2. Secondary: Search by Email variations across common field paths
+        // 2. TERTIARY: Search by Email variations across common field paths
         const email = userEmail || (auth.currentUser ? auth.currentUser.email : null);
         if (email) {
             const rawEmail = email.trim(); // Trim original
@@ -96,7 +110,7 @@ export async function getUserOrdersFromCloud(userId, userEmail = null) {
             return dateB - dateA;
         });
 
-        console.log(`Cloud sync complete. ${sortedOrders.length} orders found for ${email || userId}`);
+        console.log(`Cloud sync complete. ${sortedOrders.length} total orders found for ${email || userId}`);
         return sortedOrders;
     } catch (error) {
         console.error("Fatal error in getUserOrdersFromCloud:", error);
