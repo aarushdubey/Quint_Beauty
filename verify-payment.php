@@ -50,10 +50,22 @@ if ($rzp_payment_id && $rzp_order_id && $rzp_signature) {
     $payment_data = json_decode($result, true);
     curl_close($ch);
 
+    // --- DEBUG: Log API Response ---
+    $debugLog = "API Verify Result for $rzp_payment_id: " . print_r($payment_data, true) . "\n----------------\n";
+    file_put_contents($logFile, $debugLog, FILE_APPEND);
+    // -------------------------------
+
     if (isset($payment_data['status']) && ($payment_data['status'] === 'captured' || $payment_data['status'] === 'authorized')) {
         $success = true;
+
         // Fill in missing details from API response
-        $rzp_order_id = $payment_data['order_id'] ?? 'unknown_order';
+        // Use a Fallback ID if order_id is missing from API
+        if (!empty($payment_data['order_id'])) {
+            $rzp_order_id = $payment_data['order_id'];
+        } else {
+            $rzp_order_id = "ORD-" . time() . "-" . rand(100, 999);
+        }
+
         $amount_paid = number_format(($payment_data['amount'] ?? 0) / 100, 2);
 
         // Capture notes if available
@@ -62,6 +74,8 @@ if ($rzp_payment_id && $rzp_order_id && $rzp_signature) {
         }
         if (isset($payment_data['notes'])) {
             $payment_notes_json = json_encode($payment_data['notes']);
+        } else {
+            $payment_notes_json = "{}";
         }
     } else {
         $error = "Payment status verification failed. Status: " . ($payment_data['status'] ?? 'unknown');
