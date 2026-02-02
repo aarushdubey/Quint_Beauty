@@ -534,6 +534,10 @@ async function initiateRazorpayPayment(totalAmount) {
             description: 'Order Payment',
             image: RAZORPAY_CONFIG.company_logo || '',
 
+            // --- CRITICAL: Pass the Server-Generated Order ID ---
+            order_id: orderData.id,
+            // -----------------------------------------------------
+
             // --- REDIRECT FIX: Ensure user is redirected even if tab reloads ---
             callback_url: window.location.origin + '/verify-payment.php',
             redirect: true,
