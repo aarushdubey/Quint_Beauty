@@ -380,9 +380,7 @@
                     return;
                 }
 
-                // Sort by date new to old
-                orders.reverse();
-
+                // Orders are already sorted newest-first from Firebase
                 // Store orders globally for detail view
                 window.currentOrders = orders;
 
