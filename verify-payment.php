@@ -159,12 +159,12 @@ if ($success) {
             <script>
                 // Initialize Firebase
                 const firebaseConfig = {
-                    apiKey: "AIzaSyDXLEDKGCWmVXVMYiWMNTEUQvdKPxUTzaI",
+                    apiKey: "AIzaSyC8d9OfIXC6J6EFIAqVZgyVm2S3yujLMk8",
                     authDomain: "quint-beauty.firebaseapp.com",
                     projectId: "quint-beauty",
                     storageBucket: "quint-beauty.firebasestorage.app",
-                    messagingSenderId: "1031695265699",
-                    appId: "1:1031695265699:web:a2c6e0a6d3e8c8f8e8c8f8"
+                    messagingSenderId: "182771986293",
+                    appId: "1:182771986293:web:164925cd16b6e9343ead3c"
                 };
 
                 firebase.initializeApp(firebaseConfig);
