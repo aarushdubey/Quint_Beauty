@@ -10,11 +10,12 @@ $key_secret = 'glCoiM7Eq1KKevTp1OyNkbL1';
 $success = false;
 $error = "Payment Verification Failed";
 
-if (isset($_POST['razorpay_payment_id']) && isset($_POST['razorpay_order_id']) && isset($_POST['razorpay_signature'])) {
+// Check both POST and GET for payment details (mobile browsers may use GET)
+$rzp_payment_id = $_POST['razorpay_payment_id'] ?? $_GET['razorpay_payment_id'] ?? null;
+$rzp_order_id = $_POST['razorpay_order_id'] ?? $_GET['razorpay_order_id'] ?? null;
+$rzp_signature = $_POST['razorpay_signature'] ?? $_GET['razorpay_signature'] ?? null;
 
-    $rzp_payment_id = $_POST['razorpay_payment_id'];
-    $rzp_order_id = $_POST['razorpay_order_id'];
-    $rzp_signature = $_POST['razorpay_signature'];
+if ($rzp_payment_id && $rzp_order_id && $rzp_signature) {
 
     $generated_signature = hash_hmac('sha256', $rzp_order_id . "|" . $rzp_payment_id, $key_secret);
 

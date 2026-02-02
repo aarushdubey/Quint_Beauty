@@ -538,10 +538,9 @@ async function initiateRazorpayPayment(totalAmount) {
             order_id: orderData.id,
             // -----------------------------------------------------
 
-            // --- REDIRECT FIX: Ensure user is redirected even if tab reloads ---
+            // HYBRID APPROACH: Use callback_url for UPI/app redirects (mobile) + handler for in-browser payments
+            // This is critical for Google Pay/UPI on mobile where app switching breaks JS context
             callback_url: window.location.origin + '/verify-payment.php',
-            redirect: true,
-            // -------------------------------------------------------------------
 
             prefill: {
                 name: formData.firstName + ' ' + formData.lastName,
@@ -566,7 +565,35 @@ async function initiateRazorpayPayment(totalAmount) {
                 color: RAZORPAY_CONFIG.theme_color
             },
 
-            // Note: 'handler' is ignored when callback_url is present
+            // Handler for in-browser payments (cards, netbanking when no app redirect happens)
+            // Note: This won't fire for UPI app redirects, callback_url handles those
+            handler: function (response) {
+                console.log('Payment successful (handler), redirecting to verification...');
+
+                // Create a form to POST data to verify-payment.php
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'verify-payment.php';
+
+                // Add payment details as hidden fields
+                const fields = {
+                    'razorpay_payment_id': response.razorpay_payment_id,
+                    'razorpay_order_id': response.razorpay_order_id,
+                    'razorpay_signature': response.razorpay_signature
+                };
+
+                for (const key in fields) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = fields[key];
+                    form.appendChild(input);
+                }
+
+                document.body.appendChild(form);
+                form.submit();
+            },
+
             modal: {
                 ondismiss: function () {
                     console.log('Payment cancelled by user');
