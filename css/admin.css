@@ -258,6 +258,11 @@
     color: #7b1fa2;
 }
 
+.status-completed {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
 /* Filters */
 .filters-bar {
     display: flex;

@@ -337,7 +337,7 @@ function createOrdersTable(orders) {
                 <th>Items</th>
                 <th>Total</th>
                 <th>Status</th>
-                <th>Action</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -354,6 +354,8 @@ function createOrdersTable(orders) {
             hour12: true
         });
 
+        const isCompleted = order.status === 'completed';
+
         return `
                     <tr>
                         <td class="order-id">${order.orderId || 'N/A'}</td>
@@ -363,9 +365,18 @@ function createOrdersTable(orders) {
                         <td><strong>₹${parseFloat(order.total || 0).toFixed(2)}</strong></td>
                         <td><span class="order-status status-${order.status || 'paid'}">${(order.status || 'paid').toUpperCase()}</span></td>
                         <td>
-                            <button class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="viewOrderDetails('${order.id}')">
-                                View
-                            </button>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="viewOrderDetails('${order.id}')">
+                                    View
+                                </button>
+                                ${!isCompleted ? `
+                                <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: #4CAF50; border-color: #4CAF50;" onclick="markOrderComplete('${order.id}')">
+                                    Complete
+                                </button>
+                                ` : `
+                                <span style="color: #4CAF50; font-size: 0.85rem; padding: 0.4rem 0.8rem;">✓ Done</span>
+                                `}
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -455,6 +466,37 @@ window.viewOrderDetails = function (orderId) {
 
 window.closeOrderModal = function () {
     document.getElementById('orderModal').classList.remove('active');
+};
+
+// Mark Order as Complete
+window.markOrderComplete = async function (orderId) {
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order) return;
+
+    const confirmed = confirm(`Mark order ${order.orderId} as completed?`);
+    if (!confirmed) return;
+
+    try {
+        // Update in Firestore
+        const orderRef = doc(db, 'orders', orderId);
+        await updateDoc(orderRef, {
+            status: 'completed',
+            completedAt: new Date().toISOString()
+        });
+
+        // Update local data
+        order.status = 'completed';
+        order.completedAt = new Date().toISOString();
+
+        // Refresh displays
+        displayRecentOrders();
+        loadAllOrders();
+
+        alert('✓ Order marked as completed!');
+    } catch (error) {
+        console.error('Error updating order:', error);
+        alert('Failed to update order: ' + error.message);
+    }
 };
 
 // Close modal on outside click
