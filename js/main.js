@@ -453,7 +453,16 @@ async function initiateRazorpayPayment(totalAmount) {
         const response = await fetch('create-order.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount: amountInPaise })
+            body: JSON.stringify({
+                amount: amountInPaise,
+                notes: {
+                    email: formData.email,
+                    name: formData.firstName + " " + formData.lastName,
+                    phone: formData.phone,
+                    address: formData.address,
+                    items_summary: cart.map(i => `${i.name} (x${i.quantity})`).join(', ')
+                }
+            })
         });
 
         if (!response.ok) {

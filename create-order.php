@@ -40,6 +40,7 @@ if (!isset($data['amount'])) {
 }
 
 $amount = $data['amount'];
+$notes = isset($data['notes']) ? $data['notes'] : []; // Capture notes (email, address, etc.)
 
 // -----------------------------------------------------------------------------
 // 4. Call Razorpay API (Create Order)
@@ -48,10 +49,11 @@ $amount = $data['amount'];
 $url = 'https://api.razorpay.com/v1/orders';
 
 $fields = [
-    'amount' => $amount, 
+    'amount' => $amount,
     'currency' => 'INR',
     'receipt' => 'order_' . time(),
-    'payment_capture' => 1 // Auto-capture payment
+    'payment_capture' => 1,
+    'notes' => $notes // Pass notes to Razorpay
 ];
 
 $ch = curl_init();
