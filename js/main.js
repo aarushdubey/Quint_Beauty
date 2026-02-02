@@ -76,49 +76,36 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.textContent = 'Sending...';
             btn.disabled = true;
 
-            const params = {
-                from_name: document.getElementById('contactName').value,
-                from_email: document.getElementById('contactEmail').value,
+            const formData = {
+                name: document.getElementById('contactName').value,
+                email: document.getElementById('contactEmail').value,
                 subject: document.getElementById('contactSubject').value,
-                message: document.getElementById('contactMessage').value,
-                to_email: 'beautyquint@gmail.com'
+                message: document.getElementById('contactMessage').value
             };
 
-            const name = params.from_name;
-            const email = params.from_email;
-            const subject = params.subject;
-            const message = params.message;
-
-            // Use customer template (template_5zwuogh) which is simpler
-            emailjs.send('service_xrl22yi', 'template_5zwuogh', {
-                to_email: 'beautyquint@gmail.com',
-                email: 'beautyquint@gmail.com',
-                customer_name: name,
-                order_id: 'Contact: ' + subject,
-                order_items_html: `
-                    <div style="padding: 15px; background: #f9f9f9; border-radius: 5px;">
-                        <p><strong>From:</strong> ${name} (${email})</p>
-                        <p><strong>Subject:</strong> ${subject}</p>
-                        <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ddd;">
-                        <p><strong>Message:</strong></p>
-                        <p style="white-space: pre-wrap;">${message}</p>
-                    </div>
-                `,
-                cost_shipping: '0.00',
-                cost_tax: '0.00',
-                cost_total: '0.00'
+            // Send to PHP backend
+            fetch('send-contact.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
             })
-                .then(function () {
-                    alert('Message sent successfully!');
-                    contactForm.reset();
-                    btn.textContent = 'Message Sent';
-                    setTimeout(() => {
-                        btn.textContent = originalText;
-                        btn.disabled = false;
-                    }, 3000);
-                }, function (error) {
-                    console.error('Failed to send message:', error);
-                    alert('Failed to send message. Please try again or email us directly.');
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Message sent successfully! We will get back to you soon.');
+                        contactForm.reset();
+                        btn.textContent = 'Message Sent ✓';
+                        setTimeout(() => {
+                            btn.textContent = originalText;
+                            btn.disabled = false;
+                        }, 3000);
+                    } else {
+                        throw new Error(data.error || 'Failed to send');
+                    }
+                })
+                .catch(error => {
+                    console.error('Contact form error:', error);
+                    alert('Failed to send message. Please email us directly at beautyquint@gmail.com');
                     btn.textContent = originalText;
                     btn.disabled = false;
                 });
