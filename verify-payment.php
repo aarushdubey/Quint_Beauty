@@ -10,13 +10,23 @@ $key_secret = 'glCoiM7Eq1KKevTp1OyNkbL1';
 $success = false;
 $error = "Payment Verification Failed";
 
+// --- DEBUG LOGGING ---
+$logFile = 'payment_debug.txt';
+$logData = "Time: " . date('Y-m-d H:i:s') . "\n";
+$logData .= "Method: " . $_SERVER['REQUEST_METHOD'] . "\n";
+$logData .= "POST Data: " . print_r($_POST, true) . "\n";
+$logData .= "GET Data: " . print_r($_GET, true) . "\n";
+$logData .= "Input Stream: " . file_get_contents('php://input') . "\n";
+$logData .= "-----------------------------------\n";
+file_put_contents($logFile, $logData, FILE_APPEND);
+// ---------------------
+
 // Check both POST and GET for payment details (mobile browsers may use GET)
 $rzp_payment_id = $_POST['razorpay_payment_id'] ?? $_GET['razorpay_payment_id'] ?? null;
 $rzp_order_id = $_POST['razorpay_order_id'] ?? $_GET['razorpay_order_id'] ?? null;
 $rzp_signature = $_POST['razorpay_signature'] ?? $_GET['razorpay_signature'] ?? null;
 
 if ($rzp_payment_id && $rzp_order_id && $rzp_signature) {
-
     $generated_signature = hash_hmac('sha256', $rzp_order_id . "|" . $rzp_payment_id, $key_secret);
 
     if ($generated_signature === $rzp_signature) {
@@ -25,7 +35,9 @@ if ($rzp_payment_id && $rzp_order_id && $rzp_signature) {
         $error = "Invalid Signature";
     }
 } else {
-    $error = "Invalid Access. Missing payment details.";
+    // Detailed error for debugging
+    $debug_info = "POST: " . json_encode($_POST) . " | GET: " . json_encode($_GET);
+    $error = "Invalid Access. Missing payment details. <br><small>Debug: " . htmlspecialchars($debug_info) . "</small>";
 }
 
 // -----------------------------------------------------------------------------
