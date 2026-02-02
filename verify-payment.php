@@ -9,6 +9,9 @@ $key_secret = 'glCoiM7Eq1KKevTp1OyNkbL1';
 // -----------------------------------------------------------------------------
 $success = false;
 $error = "Payment Verification Failed";
+$items_summary = "Items information unavailable";
+$amount_paid = "0.00";
+$payment_notes_json = "{}";
 
 // --- DEBUG LOGGING ---
 $logFile = 'payment_debug.txt';
@@ -26,29 +29,54 @@ $rzp_payment_id = $_POST['razorpay_payment_id'] ?? $_GET['razorpay_payment_id'] 
 $rzp_order_id = $_POST['razorpay_order_id'] ?? $_GET['razorpay_order_id'] ?? null;
 $rzp_signature = $_POST['razorpay_signature'] ?? $_GET['razorpay_signature'] ?? null;
 
+// --- VERIFICATION LOGIC ---
 if ($rzp_payment_id && $rzp_order_id && $rzp_signature) {
+    // Case 1: All parameters present - Verify Signature (Local Check)
     $generated_signature = hash_hmac('sha256', $rzp_order_id . "|" . $rzp_payment_id, $key_secret);
-
     if ($generated_signature === $rzp_signature) {
         $success = true;
     } else {
         $error = "Invalid Signature";
     }
+} elseif ($rzp_payment_id) {
+    // Case 2: Only Payment ID present (Mobile Flow) - Verify via API (Server check)
+    // Mobile redirects sometimes drop the order_id/signature, so we ask Razorpay directly
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, 'https://api.razorpay.com/v1/payments/' . $rzp_payment_id);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_USERPWD, $key_id . ':' . $key_secret);
+
+    $result = curl_exec($ch);
+    $payment_data = json_decode($result, true);
+    curl_close($ch);
+
+    if (isset($payment_data['status']) && ($payment_data['status'] === 'captured' || $payment_data['status'] === 'authorized')) {
+        $success = true;
+        // Fill in missing details from API response
+        $rzp_order_id = $payment_data['order_id'] ?? 'unknown_order';
+        $amount_paid = number_format(($payment_data['amount'] ?? 0) / 100, 2);
+
+        // Capture notes if available
+        if (isset($payment_data['notes']['items_summary'])) {
+            $items_summary = $payment_data['notes']['items_summary'];
+        }
+        if (isset($payment_data['notes'])) {
+            $payment_notes_json = json_encode($payment_data['notes']);
+        }
+    } else {
+        $error = "Payment status verification failed. Status: " . ($payment_data['status'] ?? 'unknown');
+    }
 } else {
-    // Detailed error for debugging
+    // Case 3: No data at all
     $debug_info = "POST: " . json_encode($_POST) . " | GET: " . json_encode($_GET);
     $error = "Invalid Access. Missing payment details. <br><small>Debug: " . htmlspecialchars($debug_info) . "</small>";
 }
 
 // -----------------------------------------------------------------------------
-// 2. Fetch Order Details (To show items)
+// 2. Fetch Order Details (To show items) - Only if not already fetched in Case 2
 // -----------------------------------------------------------------------------
-$items_summary = "Items information unavailable";
-$amount_paid = "0.00";
-$payment_notes_json = "{}";
-
-if ($success) {
-    // We need to fetch the payment details to get the "notes" back
+if ($success && $amount_paid === "0.00") {
+    // Standard fetch if we verified via signature (Case 1)
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, 'https://api.razorpay.com/v1/payments/' . $rzp_payment_id);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
