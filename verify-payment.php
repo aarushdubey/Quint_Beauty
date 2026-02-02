@@ -151,9 +151,61 @@ if ($success) {
 
             <a href="index.html" class="btn">Return to Home</a>
 
-            <!-- Clear Cart Script -->
+            <!-- Firebase Scripts -->
+            <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+            <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+            <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
             <script>
-                localStorage.removeItem('quintCart');
+                // Initialize Firebase
+                const firebaseConfig = {
+                    apiKey: "AIzaSyDXLEDKGCWmVXVMYiWMNTEUQvdKPxUTzaI",
+                    authDomain: "quint-beauty.firebaseapp.com",
+                    projectId: "quint-beauty",
+                    storageBucket: "quint-beauty.firebasestorage.app",
+                    messagingSenderId: "1031695265699",
+                    appId: "1:1031695265699:web:a2c6e0a6d3e8c8f8e8c8f8"
+                };
+
+                firebase.initializeApp(firebaseConfig);
+                const auth = firebase.auth();
+                const db = firebase.firestore();
+
+                // Save order to user's account
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        console.log('User logged in:', user.email);
+
+                        // Create order object
+                        const orderData = {
+                            orderId: '<?php echo $rzp_order_id; ?>',
+                            paymentId: '<?php echo $rzp_payment_id; ?>',
+                            amount: <?php echo $amount_paid; ?>,
+                            items: '<?php echo addslashes($items_summary); ?>',
+                            date: new Date().toISOString(),
+                            status: 'Paid'
+                        };
+
+                        try {
+                            // Save to Firestore
+                            await db.collection('users').doc(user.uid).collection('orders').add(orderData);
+                            console.log('Order saved to Firebase');
+
+                            // Also save to localStorage as backup
+                            const storageKey = `quintOrders_${user.uid}`;
+                            const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
+                            orders.push(orderData);
+                            localStorage.setItem(storageKey, JSON.stringify(orders));
+                        } catch (error) {
+                            console.error('Error saving order:', error);
+                        }
+                    } else {
+                        console.log('No user logged in - order saved to admin only');
+                    }
+
+                    // Clear cart regardless
+                    localStorage.removeItem('quintCart');
+                });
             </script>
         <?php else: ?>
             <div class="icon">❌</div>
