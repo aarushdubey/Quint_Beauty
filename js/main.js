@@ -406,7 +406,8 @@ function renderCheckoutPage() {
 }
 
 // Razorpay Payment Integration
-function initiateRazorpayPayment(totalAmount) {
+// Razorpay Payment Integration (Updated with Backend Order API)
+async function initiateRazorpayPayment(totalAmount) {
     // Validate form first
     const form = document.getElementById('checkoutForm');
     if (!form) {
@@ -414,25 +415,20 @@ function initiateRazorpayPayment(totalAmount) {
         return;
     }
 
-    // Manual validation to catch whitespace-only inputs
+    // Manual validation
     const requiredFields = ['email', 'phone', 'firstName', 'lastName', 'address', 'city', 'zipCode', 'state'];
     let isValid = true;
-
     requiredFields.forEach(id => {
         const el = document.getElementById(id);
-        if (el) {
-            if (!el.value || el.value.trim() === '') {
-                el.setCustomValidity('Please fill out this field');
-                isValid = false;
-            } else {
-                el.setCustomValidity('');
-            }
+        if (el && (!el.value || el.value.trim() === '')) {
+            el.setCustomValidity('Please fill out this field');
+            isValid = false;
+        } else if (el) {
+            el.setCustomValidity('');
         }
     });
 
-    // Check if form is valid
     if (!isValid || !form.checkValidity()) {
-        // Trigger HTML5 validation UI
         form.reportValidity();
         return;
     }
@@ -440,69 +436,89 @@ function initiateRazorpayPayment(totalAmount) {
     // Get form data
     const formData = getCheckoutFormData();
 
-    // Convert total to paise (Razorpay expects amount in smallest currency unit)
+    // Get cart for success handler
+    const cart = getCart();
+
+    // Convert total to paise
     const amountInPaise = Math.round(totalAmount * 100);
 
-    // Get cart items for order notes
-    const cart = getCart();
-    const itemsList = cart.map(item => `${item.name} (${item.quantity}x)`).join(', ');
-
-    // Razorpay options
-    const options = {
-        key: RAZORPAY_CONFIG.key_id,
-        amount: amountInPaise, // Amount in paise
-        currency: RAZORPAY_CONFIG.currency,
-        name: RAZORPAY_CONFIG.company_name,
-        description: 'Order for ' + itemsList,
-        image: RAZORPAY_CONFIG.company_logo || '', // Your logo URL
-
-        // Prefill customer information
-        prefill: {
-            name: formData.firstName + ' ' + formData.lastName,
-            email: formData.email,
-            contact: formData.phone || '' // Add phone field if you have one
-        },
-
-        // Shipping address
-        notes: {
-            address: formData.address,
-            city: formData.city,
-            state: formData.state,
-            zipCode: formData.zipCode,
-            items: itemsList
-        },
-
-        theme: {
-            color: RAZORPAY_CONFIG.theme_color
-        },
-
-        // Payment success handler
-        handler: function (response) {
-            handlePaymentSuccess(response, formData, cart, totalAmount);
-        },
-
-        // Payment modal closed
-        modal: {
-            ondismiss: function () {
-                console.log('Payment cancelled by user');
-                // You can show a message or handle cancellation
-            }
-        }
-    };
-
-    // Create Razorpay instance and open checkout
+    // Call Backend to Create Order
     try {
+        console.log("Contacting Server to Create Order...");
+
+        // Call Backend to Create Order (PHP Version)
+        console.log("Contacting Server to Create Order...");
+
+        // Use 'create-order.php' logic
+        const response = await fetch('create-order.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: amountInPaise })
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Server Error: ${errText}`);
+        }
+
+        const orderData = await response.json();
+
+        if (!orderData.id) {
+            throw new Error("No Order ID returned from server.");
+        }
+
+        console.log("Order Created Successfully:", orderData.id);
+
+        // Open Razorpay with the Server Options
+        const options = {
+            key: RAZORPAY_CONFIG.key_id,
+            amount: orderData.amount,
+            currency: orderData.currency,
+            name: RAZORPAY_CONFIG.company_name,
+            description: 'Order Payment',
+            image: RAZORPAY_CONFIG.company_logo || '',
+
+            // --- SECURITY FIX: Pass the Server-Generated Order ID ---
+            order_id: orderData.id,
+            // --------------------------------------------------------
+
+            prefill: {
+                name: formData.firstName + ' ' + formData.lastName,
+                email: formData.email,
+                contact: formData.phone || ''
+            },
+
+            notes: {
+                address: formData.address,
+                items: cart.map(item => `${item.name} (${item.quantity}x)`).join(', ')
+            },
+
+            theme: {
+                color: RAZORPAY_CONFIG.theme_color
+            },
+
+            handler: function (response) {
+                handlePaymentSuccess(response, formData, cart, totalAmount);
+            },
+
+            modal: {
+                ondismiss: function () {
+                    console.log('Payment cancelled by user');
+                }
+            }
+        };
+
         const razorpayInstance = new Razorpay(options);
 
-        // Handle payment failure
         razorpayInstance.on('payment.failed', function (response) {
             handlePaymentFailure(response);
         });
 
         razorpayInstance.open();
+
     } catch (error) {
-        console.error('Razorpay initialization error:', error);
-        alert('Payment gateway could not be initialized. Please try again.');
+        console.error('Payment Initialization Error:', error);
+        alert('Could not verify payment security with server. Please try again.\n\nDetails: ' + error.message);
     }
 }
 
