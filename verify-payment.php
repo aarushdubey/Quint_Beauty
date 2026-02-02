@@ -304,6 +304,62 @@ if ($success && $amount_paid === "0.00") {
             </p>
             <a href="cart.html" class="btn" style="background: #dc3545;">Try Again</a>
         <?php endif; ?>
+        <!-- EmailJS SDK -->
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+        <script>
+            (function () {
+                emailjs.init("ERevR8RO4LajPBrwk");
+            })();
+
+            // Send Email on Page Load
+            document.addEventListener('DOMContentLoaded', async () => {
+            <?php if ($success): ?>
+                        console.log("Preparing to send confirmation emails...");
+
+                    const paymentNotes = <?php echo $payment_notes_json; ?>;
+                    const orderId = "<?php echo $rzp_order_id; ?>";
+                    const amount = "<?php echo $amount_paid; ?>";
+                    const itemsSummary = "<?php echo str_replace(array("\r", "\n"), '', addslashes($items_summary)); ?>";
+
+                    // Construct email parameters
+                    const emailParams = {
+                        to_email: paymentNotes.email,
+                        email: paymentNotes.email,
+                        order_id: orderId,
+                        order_items_html: itemsSummary,
+                        cost_shipping: "0.00",
+                        cost_tax: "0.00",
+                        cost_total: amount,
+                        customer_name: paymentNotes.name || (paymentNotes.firstName + ' ' + paymentNotes.lastName),
+
+                        // Extra fields for Admin email
+                        admin_email: 'beautyquint@gmail.com',
+                        customer_email: paymentNotes.email,
+                        customer_phone: paymentNotes.phone || 'Not provided',
+                        customer_address: (paymentNotes.address || '') + ', ' + (paymentNotes.city || '') + ', ' + (paymentNotes.state || '') + ' ' + (paymentNotes.zipCode || ''),
+                        payment_id: "<?php echo $rzp_payment_id; ?>",
+                        order_date: new Date().toLocaleString('en-IN')
+                    };
+
+                    // Send Customer Email
+                    emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
+                        .then(function () {
+                            console.log('✅ Customer email sent!');
+                        }, function (error) {
+                            console.error('❌ Customer email failed:', error);
+                        });
+
+                    // Send Admin Email
+                    emailjs.send('service_xrl22yi', 'template_ryjw82n', emailParams)
+                        .then(function () {
+                            console.log('✅ Admin email sent!');
+                        }, function (error) {
+                            console.error('❌ Admin email failed:', error);
+                        });
+            <?php endif; ?>
+        });
+        </script>
     </div>
 </body>
 
