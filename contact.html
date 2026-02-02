@@ -46,16 +46,16 @@
                 <p style="color: #666;">Have a question? We'd love to hear from you.</p>
             </div>
 
-            <form style="display: grid; gap: 1.5rem;">
+            <form id="contactForm" style="display: grid; gap: 1.5rem;">
                 <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <input type="text" placeholder="Name"
+                    <input type="text" id="contactName" placeholder="Name" required
                         style="padding: 1rem; border: 1px solid #ddd; font-family: var(--font-body);">
-                    <input type="email" placeholder="Email"
+                    <input type="email" id="contactEmail" placeholder="Email" required
                         style="padding: 1rem; border: 1px solid #ddd; font-family: var(--font-body);">
                 </div>
-                <input type="text" placeholder="Subject"
+                <input type="text" id="contactSubject" placeholder="Subject" required
                     style="padding: 1rem; border: 1px solid #ddd; font-family: var(--font-body);">
-                <textarea rows="5" placeholder="Message"
+                <textarea id="contactMessage" rows="5" placeholder="Message" required
                     style="padding: 1rem; border: 1px solid #ddd; font-family: var(--font-body);"></textarea>
                 <button type="submit" class="btn btn-primary">Send Message</button>
             </form>

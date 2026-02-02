@@ -47,44 +47,80 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuBtn = document.querySelector('.mobile-menu-btn');
     const navLinks = document.querySelector('.nav-links');
 
-    if (menuBtn) {
-        menuBtn.addEventListener('click', () => {
-            if (navLinks.style.display === 'flex') {
-                navLinks.style.display = 'none';
-            } else {
-                navLinks.style.display = 'flex';
-                navLinks.style.flexDirection = 'column';
-                navLinks.style.position = 'absolute';
-                navLinks.style.top = '100%';
-                navLinks.style.left = '0';
-                navLinks.style.width = '100%';
-                navLinks.style.background = 'white';
-                navLinks.style.padding = '1rem';
-                navLinks.style.boxShadow = '0 5px 10px rgba(0,0,0,0.1)';
-            }
+}
         });
     }
 
-    // Initialize Cart State
-    refreshCartUI();
+// Contact Form Handling (New)
+const contactForm = document.getElementById('contactForm');
+if (contactForm) {
+    contactForm.addEventListener('submit', function (e) {
+        e.preventDefault();
 
-    // Setup Add to Cart Buttons
-    setupAddToCartButtons();
+        const btn = contactForm.querySelector('button[type="submit"]');
+        const originalText = btn.textContent;
+        btn.textContent = 'Sending...';
+        btn.disabled = true;
 
-    // Render Cart Page if we are on it
-    if (document.querySelector('.cart-table')) {
-        renderCartPage();
-    }
+        const params = {
+            from_name: document.getElementById('contactName').value,
+            from_email: document.getElementById('contactEmail').value,
+            subject: document.getElementById('contactSubject').value,
+            message: document.getElementById('contactMessage').value,
+            to_email: 'beautyquint@gmail.com' // Admin email
+        };
 
-    // Render Checkout Page if we are on it
-    if (document.querySelector('.order-summary-box')) {
-        renderCheckoutPage();
-    }
+        // Using your existing service and a generic template (or the admin one)
+        // Assuming template_ryjw82n (Admin Notification) can handle generic keys 
+        // or we add a new template ID for contact form.
+        // For now I'll use the same service.
 
-    // Initialize on load
-    if (window.initRevealAnimations) {
-        window.initRevealAnimations();
-    }
+        emailjs.send('service_xrl22yi', 'template_ryjw82n', {
+            customer_name: params.from_name,
+            customer_email: params.from_email,
+            order_id: 'Inquiry: ' + params.subject, // Reusing order_id field for subject
+            order_items_html: params.message,       // Reusing items html for message
+            cost_total: 'N/A'
+        })
+            .then(function () {
+                alert('Message sent successfully!');
+                contactForm.reset();
+                btn.textContent = 'Message Sent';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }, 3000);
+            }, function (error) {
+                console.error('Failed to send message:', error);
+                alert('Failed to send message. Please try again or email us directly.');
+                btn.textContent = originalText;
+                btn.disabled = false;
+            });
+    });
+}
+
+// Initialize Cart State
+
+// Initialize Cart State
+refreshCartUI();
+
+// Setup Add to Cart Buttons
+setupAddToCartButtons();
+
+// Render Cart Page if we are on it
+if (document.querySelector('.cart-table')) {
+    renderCartPage();
+}
+
+// Render Checkout Page if we are on it
+if (document.querySelector('.order-summary-box')) {
+    renderCheckoutPage();
+}
+
+// Initialize on load
+if (window.initRevealAnimations) {
+    window.initRevealAnimations();
+}
 });
 
 // Scroll Animation Observer (Global)
