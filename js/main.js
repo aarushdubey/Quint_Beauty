@@ -76,11 +76,17 @@ if (contactForm) {
         // For now I'll use the same service.
 
         emailjs.send('service_xrl22yi', 'template_ryjw82n', {
+            to_email: 'beautyquint@gmail.com',     // Required
+            admin_email: 'beautyquint@gmail.com',  // Required
             customer_name: params.from_name,
             customer_email: params.from_email,
-            order_id: 'Inquiry: ' + params.subject, // Reusing order_id field for subject
-            order_items_html: params.message,       // Reusing items html for message
-            cost_total: 'N/A'
+            customer_phone: 'Not Provided',
+            customer_address: 'Contact Form Inquiry',
+            order_id: 'Inquiry: ' + params.subject,
+            order_items_html: '<p>' + params.message.replace(/\n/g, '<br>') + '</p>',
+            cost_total: '0.00',
+            payment_id: 'N/A',
+            order_date: new Date().toLocaleString()
         })
             .then(function () {
                 alert('Message sent successfully!');
