@@ -32,6 +32,7 @@ if (isset($_POST['razorpay_payment_id']) && isset($_POST['razorpay_order_id']) &
 // -----------------------------------------------------------------------------
 $items_summary = "Items information unavailable";
 $amount_paid = "0.00";
+$payment_notes_json = "{}";
 
 if ($success) {
     // We need to fetch the payment details to get the "notes" back
@@ -49,6 +50,9 @@ if ($success) {
     }
     if (isset($payment_data['amount'])) {
         $amount_paid = number_format($payment_data['amount'] / 100, 2);
+    }
+    if (isset($payment_data['notes'])) {
+        $payment_notes_json = json_encode($payment_data['notes']);
     }
 }
 
@@ -176,28 +180,58 @@ if ($success) {
                     if (user) {
                         console.log('User logged in:', user.email);
 
-                        // Create order object
+                        // Get payment notes from PHP
+                        const paymentNotes = <?php echo $payment_notes_json; ?>;
+                        console.log('Payment notes:', paymentNotes);
+
+                        // Parse cart items
+                        let cartItems = [];
+                        if (paymentNotes.cart_items_json) {
+                            try {
+                                cartItems = JSON.parse(paymentNotes.cart_items_json);
+                            } catch (e) {
+                                console.error('Failed to parse cart items:', e);
+                            }
+                        }
+
+                        // Build customer info
+                        const customerInfo = {
+                            firstName: paymentNotes.firstName || '',
+                            lastName: paymentNotes.lastName || '',
+                            email: user.email,
+                            phone: paymentNotes.phone || '',
+                            address: paymentNotes.address || '',
+                            city: paymentNotes.city || '',
+                            state: paymentNotes.state || '',
+                            zipCode: paymentNotes.zipCode || ''
+                        };
+
+                        // Create order object in the format expected by orders.html
                         const orderData = {
                             orderId: '<?php echo $rzp_order_id; ?>',
                             paymentId: '<?php echo $rzp_payment_id; ?>',
-                            amount: <?php echo $amount_paid; ?>,
-                            items: '<?php echo addslashes($items_summary); ?>',
+                            total: parseFloat(paymentNotes.total_amount || <?php echo $amount_paid; ?>),
+                            items: cartItems,
+                            customerInfo: customerInfo,
                             date: new Date().toISOString(),
                             status: 'Paid'
                         };
 
+                        console.log('Saving order:', orderData);
+
                         try {
                             // Save to Firestore
                             await db.collection('users').doc(user.uid).collection('orders').add(orderData);
-                            console.log('Order saved to Firebase');
+                            console.log('✅ Order saved to Firebase');
 
                             // Also save to localStorage as backup
                             const storageKey = `quintOrders_${user.uid}`;
                             const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
                             orders.push(orderData);
                             localStorage.setItem(storageKey, JSON.stringify(orders));
+                            console.log('✅ Order saved to localStorage');
                         } catch (error) {
-                            console.error('Error saving order:', error);
+                            console.error('❌ Error saving order:', error);
                         }
                     } else {
                         console.log('No user logged in - order saved to admin only');
