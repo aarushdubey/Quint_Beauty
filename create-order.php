@@ -52,7 +52,7 @@ $fields = [
     'amount' => $amount,
     'currency' => 'INR',
     'receipt' => 'order_' . time(),
-    'payment_capture' => 1,
+    'payment_capture' => 1, // Auto-capture payment (Explicit Integer)
     'notes' => $notes // Pass notes to Razorpay
 ];
 
