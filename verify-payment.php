@@ -304,99 +304,127 @@ if ($success && $amount_paid === "0.00") {
                         city: city,
                         state: state,
                         zipCode: zip,
-                        // Raw components for DB if needed
-                        rawAddress: paymentNotes.address || ''
+                        zipCode: zip
                     };
                 }
 
-                // --- MAIN LOGIC: RECOVER DATA -> SAVE -> EMAIL ---
-                auth.onAuthStateChanged(async (user) => {
-                    console.log("Processing flow. Auth:", user ? user.email : "Guest");
+                // --- 2. CRITICAL PATH: IMMEDIATE SAVE & EMAIL (No Auth Wait) ---
+                async function processCriticalTasks() {
+                    console.log("🚀 Starting Critical Tasks...");
 
+                    // A. Prepare Data from PHP (The Source of Truth)
                     const rzpOrderId = '<?php echo $rzp_order_id; ?>';
                     const paymentNotes = <?php echo $payment_notes_json; ?>;
-
-                    // 1. RECOVER DRAFT (Priority safety net)
-                    let draft = null;
-                    try {
-                        const draftDoc = await db.collection('pending_orders').doc(rzpOrderId).get();
-                        if (draftDoc.exists) {
-                            draft = draftDoc.data();
-                            console.log("✅ Recovered data from Firebase draft:", draft);
-                        }
-                    } catch (e) { console.error("Draft recovery failed", e); }
-
-                    // 2. PARSE FINAL DATA
-                    let customer = draft ? draft.customerInfo : getSafeCustomerInfo(paymentNotes, user ? user.email : '');
-                    // Format fullName for customer object if missing
-                    if (!customer.fullName) customer.fullName = (customer.firstName + ' ' + (customer.lastName || '')).trim();
-
-                    let cartItems = draft ? draft.items : [];
-                    if (cartItems.length === 0 && paymentNotes.cart_items_json) {
-                        try { cartItems = JSON.parse(paymentNotes.cart_items_json); } catch (e) { }
+                    
+                    // Parse Cart
+                    let cartItems = [];
+                    if (paymentNotes.cart_items_json) {
+                        try { cartItems = JSON.parse(paymentNotes.cart_items_json); } 
+                        catch (e) { console.error('Cart parse error', e); }
                     }
 
-                    const itemsSum = draft ? (draft.items_summary || '') : "<?php echo str_replace(array("\r", "\n"), '', addslashes($items_summary)); ?>";
-                    const orderTotal = draft ? draft.total : parseFloat(<?php echo $amount_paid; ?>);
+                    // Generate Customer Info (Without user email fallback initially)
+                    const customer = getSafeCustomerInfo(paymentNotes, '');
+                    const amount = parseFloat("<?php echo $amount_paid; ?>");
 
                     const orderData = {
                         orderId: rzpOrderId,
                         paymentId: '<?php echo $rzp_payment_id; ?>',
-                        total: orderTotal,
+                        total: amount,
                         items: cartItems,
                         customerInfo: customer,
                         date: new Date().toISOString(),
                         status: 'paid',
-                        source: 'mobile_redirect_v4'
+                        source: 'critical_path'
                     };
 
-                    // 3. SAVE TO DATABASE
+                    console.log("📦 Order Data Prepared:", orderData);
+
+                    // B. Save to Global Admin DB
                     try {
                         await db.collection('orders').add(orderData);
-                        console.log('✅ Admin portal updated');
+                        console.log('✅ SAVED TO ADMIN DB');
+                    } catch (error) {
+                        console.error('❌ ADMIN DB SAVE FAILED:', error);
+                    }
 
-                        if (user) {
-                            await db.collection('users').doc(user.uid).collection('orders').add(orderData);
-                        }
-                    } catch (error) { console.error('❌ DB Save Error:', error); }
-
-                    // 4. SEND EMAILS
+                    // C. Send Emails
                     <?php if ($success): ?>
-                        console.log("Customer data for email:", customer);
-
                         const emailParams = {
                             to_email: customer.email,
                             email: customer.email,
                             order_id: rzpOrderId,
-                            order_items_html: itemsSum,
+                            order_items_html: "<?php echo str_replace(array("\r", "\n"), '', addslashes($items_summary)); ?>",
                             cost_shipping: "0.00",
                             cost_tax: "0.00",
-                            cost_total: orderTotal.toFixed(2),
+                            cost_total: amount.toFixed(2),
                             customer_name: customer.fullName,
                             admin_email: 'beautyquint@gmail.com',
                             customer_email: customer.email,
                             customer_phone: customer.phone,
-                            customer_address: customer.address + (customer.city ? `, ${customer.city}` : ''),
+                            customer_address: customer.address,
                             payment_id: "<?php echo $rzp_payment_id; ?>",
                             order_date: new Date().toLocaleString('en-IN')
                         };
 
-                        console.log("Email params:", emailParams);
-
-                        // User Email (Always attempt)
-                        emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
-                            .then(() => console.log('✅ Customer email sent successfully'))
-                            .catch(err => {
-                                console.error('❌ Customer email FAILED:', err);
-                                console.error('Failed params:', emailParams);
-                            });
+                        // User Email (Always try)
+                        if (customer.email && customer.email !== 'No Email') {
+                            emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
+                                .then(() => console.log('✅ User Email Sent'))
+                                .catch(e => console.error('❌ User Email Failed', e));
+                        }
 
                         // Admin Email
                         emailjs.send('service_xrl22yi', 'template_ryjw82n', emailParams)
-                            .then(() => console.log('✅ Admin email sent successfully'))
-                            .catch(err => console.error('❌ Admin email FAILED:', err));
+                            .then(() => console.log('✅ Admin Email Sent'))
+                            .catch(e => console.error('❌ Admin Email Failed', e));
                     <?php endif; ?>
+                }
 
+                // Execute immediately
+                processCriticalTasks();
+
+
+                // --- 3. SECONDARY PATH: USER HISTORY (Waits for Auth) ---
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        console.log("👤 User Logged In:", user.email);
+                        
+                        // We reconstruct the data just for the user history save
+                        const rzpOrderId = '<?php echo $rzp_order_id; ?>';
+                        const paymentNotes = <?php echo $payment_notes_json; ?>;
+                        let cartItems = [];
+                        if (paymentNotes.cart_items_json) {
+                            try { cartItems = JSON.parse(paymentNotes.cart_items_json); } catch(e){}
+                        }
+                        const customer = getSafeCustomerInfo(paymentNotes, user.email);
+                        
+                        const orderData = {
+                            orderId: rzpOrderId,
+                            paymentId: '<?php echo $rzp_payment_id; ?>',
+                            total: parseFloat("<?php echo $amount_paid; ?>"),
+                            items: cartItems,
+                            customerInfo: customer,
+                            date: new Date().toISOString(),
+                            status: 'paid'
+                        };
+
+                        try {
+                            await db.collection('users').doc(user.uid).collection('orders').add(orderData);
+                            console.log('✅ SAVED TO USER HISTORY');
+                            
+                            // Local Backup
+                            const storageKey = `quintOrders_${user.uid}`;
+                            const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
+                            orders.push(orderData);
+                            localStorage.setItem(storageKey, JSON.stringify(orders));
+                        } catch (error) {
+                            console.error('❌ USER HISTORY SAVE FAILED:', error);
+                        }
+                    } else {
+                        console.log("👤 User is Guest - Skipping History Save");
+                    }
+                    
                     localStorage.removeItem('quintCart');
                 });
             </script>
