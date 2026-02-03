@@ -214,9 +214,11 @@ if ($success && $amount_paid === "0.00") {
             <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
             <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
             <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+            <!-- EmailJS SDK -->
+            <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
             <script>
-                // Initialize Firebase
+                // Initialize Services
                 const firebaseConfig = {
                     apiKey: "AIzaSyC8d9OfIXC6J6EFIAqVZgyVm2S3yujLMk8",
                     authDomain: "quint-beauty.firebaseapp.com",
@@ -225,89 +227,142 @@ if ($success && $amount_paid === "0.00") {
                     messagingSenderId: "182771986293",
                     appId: "1:182771986293:web:164925cd16b6e9343ead3c"
                 };
-
                 firebase.initializeApp(firebaseConfig);
                 const auth = firebase.auth();
                 const db = firebase.firestore();
 
-                // Save order to user's account
+                (function () {
+                    emailjs.init("ERevR8RO4LajPBrwk");
+                })();
+
+                // --- SHARED DATA PARSER (The Source of Truth) ---
+                function getSafeCustomerInfo(paymentNotes, userEmail = '') {
+                    // 1. Parse Name
+                    let fName = paymentNotes.firstName;
+                    let lName = paymentNotes.lastName;
+
+                    // Fallback: splitting combined name
+                    if (!fName && paymentNotes.name) {
+                        const parts = paymentNotes.name.trim().split(' ');
+                        fName = parts[0];
+                        lName = parts.slice(1).join(' ');
+                    }
+
+                    // Defaults
+                    fName = fName || 'Guest';
+                    lName = lName || '';
+                    const fullName = (fName + ' ' + lName).trim();
+
+                    // 2. Parse Address
+                    // Client flow provides separate fields, Server flow usually checking notes
+                    const city = paymentNotes.city || '';
+                    const state = paymentNotes.state || '';
+                    const zip = paymentNotes.zipCode || '';
+
+                    let address = paymentNotes.address || '';
+                    // Combine if address looks short/incomplete
+                    if (city && !address.includes(city)) address += `, ${city}`;
+                    if (state && !address.includes(state)) address += `, ${state}`;
+                    if (zip && !address.includes(zip)) address += ` ${zip}`;
+
+                    // 3. Return Clean Object
+                    return {
+                        firstName: fName,
+                        lastName: lName,
+                        fullName: fullName,
+                        email: paymentNotes.email || userEmail || 'No Email',
+                        phone: paymentNotes.phone || '',
+                        address: address, // Full formatted address
+                        city: city,
+                        state: state,
+                        zipCode: zip,
+                        // Raw components for DB if needed
+                        rawAddress: paymentNotes.address || ''
+                    };
+                }
+
+                // --- 1. SAVE ORDER TO DATABASE ---
                 auth.onAuthStateChanged(async (user) => {
                     if (user) {
-                        console.log('User logged in:', user.email);
-
-                        // Get payment notes from PHP
+                        console.log('User logged in for DB save:', user.email);
                         const paymentNotes = <?php echo $payment_notes_json; ?>;
-                        console.log('Payment notes:', paymentNotes);
 
-                        // Parse cart items
+                        // Parse Cart
                         let cartItems = [];
                         if (paymentNotes.cart_items_json) {
-                            try {
-                                cartItems = JSON.parse(paymentNotes.cart_items_json);
-                            } catch (e) {
-                                console.error('Failed to parse cart items:', e);
-                            }
+                            try { cartItems = JSON.parse(paymentNotes.cart_items_json); }
+                            catch (e) { console.error('Cart parse error', e); }
                         }
 
-                        // --- ROBUST NAME & ADDRESS PARSING ---
-                        let fName = paymentNotes.firstName;
-                        let lName = paymentNotes.lastName;
+                        // Get Clean Data
+                        const customer = getSafeCustomerInfo(paymentNotes, user.email);
 
-                        // Fallback: Parse 'name' if separate fields are missing
-                        if (!fName && paymentNotes.name) {
-                            const nameParts = paymentNotes.name.trim().split(' ');
-                            fName = nameParts[0];
-                            lName = nameParts.slice(1).join(' ');
-                        }
-
-                        // Fallback: Address
-                        // If separate fields like city are missing, try to infer or just keep empty
-
-                        // Build customer info object for Firestore
-                        const customerInfo = {
-                            firstName: fName || 'Guest',
-                            lastName: lName || '',
-                            email: user.email,
-                            phone: paymentNotes.phone || '',
-                            address: paymentNotes.address || '',
-                            city: paymentNotes.city || '',
-                            state: paymentNotes.state || '',
-                            zipCode: paymentNotes.zipCode || ''
-                        };
-
-                        // Create order object in the format expected by orders.html
+                        // Order Data for Firestore
                         const orderData = {
                             orderId: '<?php echo $rzp_order_id; ?>',
                             paymentId: '<?php echo $rzp_payment_id; ?>',
-                            total: parseFloat(paymentNotes.total_amount || <?php echo $amount_paid; ?>),
+                            total: parseFloat(<?php echo $amount_paid; ?>),
                             items: cartItems,
-                            customerInfo: customerInfo,
+                            customerInfo: customer, // Use the safe object
                             date: new Date().toISOString(),
                             status: 'Paid'
                         };
 
-                        console.log('Saving order:', orderData);
-
                         try {
-                            // Save to Firestore
                             await db.collection('users').doc(user.uid).collection('orders').add(orderData);
                             console.log('✅ Order saved to Firebase');
 
-                            // Also save to localStorage as backup
+                            // Backup to local storage
                             const storageKey = `quintOrders_${user.uid}`;
                             const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
                             orders.push(orderData);
                             localStorage.setItem(storageKey, JSON.stringify(orders));
-                            console.log('✅ Order saved to localStorage');
                         } catch (error) {
                             console.error('❌ Error saving order:', error);
+                            alert("Order saved locally only due to network error.");
                         }
-                    } else {
-                        console.log('No user logged in - order saved to admin only');
                     }
 
-                    // Clear cart regardless
+                    // Clear cart
                     localStorage.removeItem('quintCart');
+                });
+
+                // --- 2. SEND EMAILS (using same safe data) ---
+                document.addEventListener('DOMContentLoaded', async () => {
+                    <?php if ($success): ?>
+                        console.log("Preparing emails...");
+
+                        const paymentNotes = <?php echo $payment_notes_json; ?>;
+                        const customer = getSafeCustomerInfo(paymentNotes); // Use same safe parser
+
+                        const emailParams = {
+                            to_email: customer.email,
+                            email: customer.email,
+                            order_id: "<?php echo $rzp_order_id; ?>",
+                            order_items_html: "<?php echo str_replace(array("\r", "\n"), '', addslashes($items_summary)); ?>",
+                            cost_shipping: "0.00",
+                            cost_tax: "0.00",
+                            cost_total: "<?php echo $amount_paid; ?>",
+
+                            // Use the CLEAN parsed names
+                            customer_name: customer.fullName,
+
+                            // Admin fields
+                            admin_email: 'beautyquint@gmail.com',
+                            customer_email: customer.email,
+                            customer_phone: customer.phone,
+                            customer_address: customer.address,
+                            payment_id: "<?php echo $rzp_payment_id; ?>",
+                            order_date: new Date().toLocaleString('en-IN')
+                        };
+
+                        emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
+                            .then(() => console.log('✅ Customer email sent!'));
+
+                        emailjs.send('service_xrl22yi', 'template_ryjw82n', emailParams)
+                            .then(() => console.log('✅ Admin email sent!'));
+
+                    <?php endif; ?>
                 });
             </script>
         <?php else: ?>
@@ -318,62 +373,6 @@ if ($success && $amount_paid === "0.00") {
             </p>
             <a href="cart.html" class="btn" style="background: #dc3545;">Try Again</a>
         <?php endif; ?>
-        <!-- EmailJS SDK -->
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-
-        <script>
-            (function () {
-                emailjs.init("ERevR8RO4LajPBrwk");
-            })();
-
-            // Send Email on Page Load
-            document.addEventListener('DOMContentLoaded', async () => {
-                <?php if ($success): ?>
-                    console.log("Preparing to send confirmation emails...");
-
-                    const paymentNotes = <?php echo $payment_notes_json; ?>;
-                    const orderId = "<?php echo $rzp_order_id; ?>";
-                    const amount = "<?php echo $amount_paid; ?>";
-                    const itemsSummary = "<?php echo str_replace(array("\r", "\n"), '', addslashes($items_summary)); ?>";
-
-                    // Construct email parameters
-                    const emailParams = {
-                        to_email: paymentNotes.email,
-                        email: paymentNotes.email,
-                        order_id: orderId,
-                        order_items_html: itemsSummary,
-                        cost_shipping: "0.00",
-                        cost_tax: "0.00",
-                        cost_total: amount,
-                        customer_name: paymentNotes.name || (paymentNotes.firstName + ' ' + paymentNotes.lastName),
-
-                        // Extra fields for Admin email
-                        admin_email: 'beautyquint@gmail.com',
-                        customer_email: paymentNotes.email,
-                        customer_phone: paymentNotes.phone || 'Not provided',
-                        customer_address: (paymentNotes.address || '') + ', ' + (paymentNotes.city || '') + ', ' + (paymentNotes.state || '') + ' ' + (paymentNotes.zipCode || ''),
-                        payment_id: "<?php echo $rzp_payment_id; ?>",
-                        order_date: new Date().toLocaleString('en-IN')
-                    };
-
-                    // Send Customer Email
-                    emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
-                        .then(function () {
-                            console.log('✅ Customer email sent!');
-                        }, function (error) {
-                            console.error('❌ Customer email failed:', error);
-                        });
-
-                    // Send Admin Email
-                    emailjs.send('service_xrl22yi', 'template_ryjw82n', emailParams)
-                        .then(function () {
-                            console.log('✅ Admin email sent!');
-                        }, function (error) {
-                            console.error('❌ Admin email failed:', error);
-                        });
-                <?php endif; ?>
-            });
-        </script>
     </div>
 </body>
 
