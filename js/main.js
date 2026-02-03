@@ -512,6 +512,8 @@ async function initiateRazorpayPayment(totalAmount) {
                     city: formData.city,
                     state: formData.state,
                     zipCode: formData.zipCode,
+                    // CRITICAL: Send full cart JSON for backend reconstruction
+                    cart_items_json: JSON.stringify(cart),
                     items_summary: cart.map(i => `${i.name} (x${i.quantity})`).join(', ')
                 }
             })
