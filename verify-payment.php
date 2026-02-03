@@ -281,59 +281,63 @@ if ($success && $amount_paid === "0.00") {
                     };
                 }
 
-                // --- 1. SAVE ORDER TO DATABASE ---
+                // --- MAIN LOGIC: SAVE ORDER + SEND EMAIL ---
                 auth.onAuthStateChanged(async (user) => {
-                    if (user) {
-                        console.log('User logged in for DB save:', user.email);
-                        const paymentNotes = <?php echo $payment_notes_json; ?>;
+                    console.log("Auth State:", user ? "Logged In" : "Guest/Logged Out");
 
-                        // Parse Cart
-                        let cartItems = [];
-                        if (paymentNotes.cart_items_json) {
-                            try { cartItems = JSON.parse(paymentNotes.cart_items_json); }
-                            catch (e) { console.error('Cart parse error', e); }
-                        }
+                    // 1. PREPARE DATA (Works for Guest or User)
+                    const paymentNotes = <?php echo $payment_notes_json; ?>;
 
-                        // Get Clean Data
-                        const customer = getSafeCustomerInfo(paymentNotes, user.email);
+                    // Parse Cart
+                    let cartItems = [];
+                    if (paymentNotes.cart_items_json) {
+                        try { cartItems = JSON.parse(paymentNotes.cart_items_json); }
+                        catch (e) { console.error('Cart parse error', e); }
+                    }
 
-                        // Order Data for Firestore
-                        const orderData = {
-                            orderId: '<?php echo $rzp_order_id; ?>',
-                            paymentId: '<?php echo $rzp_payment_id; ?>',
-                            total: parseFloat(<?php echo $amount_paid; ?>),
-                            items: cartItems,
-                            customerInfo: customer, // Use the safe object
-                            date: new Date().toISOString(),
-                            status: 'Paid'
-                        };
+                    // Get Safe Customer Data
+                    // If user is null, pass empty string for email fallback
+                    const customer = getSafeCustomerInfo(paymentNotes, user ? user.email : '');
 
-                        try {
+                    // Construct Order Data
+                    const orderData = {
+                        orderId: '<?php echo $rzp_order_id; ?>',
+                        paymentId: '<?php echo $rzp_payment_id; ?>',
+                        total: parseFloat(<?php echo $amount_paid; ?>),
+                        items: cartItems,
+                        customerInfo: customer,
+                        date: new Date().toISOString(),
+                        status: 'paid', // Admin expects lowercase 'paid' usually, or 'Paid'
+                        source: 'mobile_redirect'
+                    };
+
+                    console.log("Processing Order:", orderData);
+
+                    // 2. SAVE TO FIRESTORE
+                    try {
+                        // A. Save to GLOBAL 'orders' collection (Required for Admin Portal)
+                        await db.collection('orders').add(orderData);
+                        console.log('✅ Saved to Global Admin Orders');
+
+                        // B. Save to USER history (If logged in)
+                        if (user) {
                             await db.collection('users').doc(user.uid).collection('orders').add(orderData);
-                            console.log('✅ Order saved to Firebase');
+                            console.log('✅ Saved to User History');
 
-                            // Backup to local storage
+                            // Local Backup
                             const storageKey = `quintOrders_${user.uid}`;
                             const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
                             orders.push(orderData);
                             localStorage.setItem(storageKey, JSON.stringify(orders));
-                        } catch (error) {
-                            console.error('❌ Error saving order:', error);
-                            alert("Order saved locally only due to network error.");
                         }
+                    } catch (error) {
+                        console.error('❌ Database Save Error:', error);
+                        // We continue to Email sending even if DB fails
                     }
 
-                    // Clear cart
-                    localStorage.removeItem('quintCart');
-                });
-
-                // --- 2. SEND EMAILS (using same safe data) ---
-                document.addEventListener('DOMContentLoaded', async () => {
+                    // 3. SEND EMAILS (Using the same safe data)
                     <?php if ($success): ?>
-                        console.log("Preparing emails...");
-
-                        const paymentNotes = <?php echo $payment_notes_json; ?>;
-                        const customer = getSafeCustomerInfo(paymentNotes); // Use same safe parser
+                        console.log("Sending Emails...");
 
                         const emailParams = {
                             to_email: customer.email,
@@ -343,8 +347,6 @@ if ($success && $amount_paid === "0.00") {
                             cost_shipping: "0.00",
                             cost_tax: "0.00",
                             cost_total: "<?php echo $amount_paid; ?>",
-
-                            // Use the CLEAN parsed names
                             customer_name: customer.fullName,
 
                             // Admin fields
@@ -356,13 +358,24 @@ if ($success && $amount_paid === "0.00") {
                             order_date: new Date().toLocaleString('en-IN')
                         };
 
-                        emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
-                            .then(() => console.log('✅ Customer email sent!'));
+                        // Send Customer Email
+                        if (customer.email && customer.email !== 'No Email') {
+                            emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
+                                .then(() => console.log('✅ Customer email sent!'))
+                                .catch(err => console.error('❌ Customer email failed:', err));
+                        } else {
+                            console.warn("Skipping customer email - No valid email address");
+                        }
 
+                        // Send Admin Email (Always)
                         emailjs.send('service_xrl22yi', 'template_ryjw82n', emailParams)
-                            .then(() => console.log('✅ Admin email sent!'));
+                            .then(() => console.log('✅ Admin email sent!'))
+                            .catch(err => console.error('❌ Admin email failed:', err));
 
                     <?php endif; ?>
+
+                    // Clear cart
+                    localStorage.removeItem('quintCart');
                 });
             </script>
         <?php else: ?>
