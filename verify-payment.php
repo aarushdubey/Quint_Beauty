@@ -402,6 +402,42 @@ if ($success && $amount_paid === "0.00") {
                     const customer = getSafeCustomerInfo(paymentNotes, '');
                     const amount = parseFloat("<?php echo $amount_paid; ?>");
 
+                    // CRITICAL: Wait for Firebase auth to load to get user UID
+                    // This ensures orders are properly linked to user accounts
+                    let currentUserUid = null;
+                    let currentUserEmail = customer.email || 'No Email';
+                    
+                    // Wait for auth to initialize (max 2 seconds)
+                    const getUserAuth = () => new Promise((resolve) => {
+                        if (typeof auth !== 'undefined' && auth.currentUser) {
+                            // Already loaded
+                            resolve(auth.currentUser);
+                        } else if (typeof auth !== 'undefined') {
+                            // Wait for auth state to change
+                            const unsubscribe = auth.onAuthStateChanged((user) => {
+                                unsubscribe();
+                                resolve(user);
+                            });
+                            // Timeout after 2 seconds
+                            setTimeout(() => {
+                                unsubscribe();
+                                resolve(null);
+                            }, 2000);
+                        } else {
+                            // Auth not available
+                            resolve(null);
+                        }
+                    });
+
+                    const currentUser = await getUserAuth();
+                    if (currentUser) {
+                        currentUserUid = currentUser.uid;
+                        currentUserEmail = currentUser.email || currentUserEmail;
+                   console.log("✅ User identified:", currentUserUid);
+                    } else {
+                        console.log("⚠️ Guest order (no UID - user not logged in)");
+                    }
+
                     const orderData = {
                         orderId: rzpOrderId,
                         paymentId: '<?php echo $rzp_payment_id; ?>',
@@ -410,7 +446,10 @@ if ($success && $amount_paid === "0.00") {
                         customerInfo: customer,
                         date: new Date().toISOString(),
                         status: 'paid',
-                        source: 'critical_path'
+                        source: 'critical_path',
+                        // CRITICAL: Store user ID and email for later retrieval
+                        uid: currentUserUid,  // Will be null for guest users
+                        email: currentUserEmail  // Store email for searching
                     };
 
                     console.log("📦 Order Data Prepared:", orderData);
