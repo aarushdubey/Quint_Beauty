@@ -406,8 +406,8 @@ if ($success && $amount_paid === "0.00") {
                     // This ensures orders are properly linked to user accounts
                     let currentUserUid = null;
                     let currentUserEmail = customer.email || 'No Email';
-                    
-                    // Wait for auth to initialize (max 2 seconds)
+
+                    // Wait for auth to initialize (max 4 seconds for mobile networks)
                     const getUserAuth = () => new Promise((resolve) => {
                         if (typeof auth !== 'undefined' && auth.currentUser) {
                             // Already loaded
@@ -418,11 +418,11 @@ if ($success && $amount_paid === "0.00") {
                                 unsubscribe();
                                 resolve(user);
                             });
-                            // Timeout after 2 seconds
+                            // Timeout after 4 seconds
                             setTimeout(() => {
                                 unsubscribe();
                                 resolve(null);
-                            }, 2000);
+                            }, 4000); // Increased timeout
                         } else {
                             // Auth not available
                             resolve(null);
@@ -433,7 +433,7 @@ if ($success && $amount_paid === "0.00") {
                     if (currentUser) {
                         currentUserUid = currentUser.uid;
                         currentUserEmail = currentUser.email || currentUserEmail;
-                   console.log("✅ User identified:", currentUserUid);
+                        console.log("✅ User identified:", currentUserUid);
                     } else {
                         console.log("⚠️ Guest order (no UID - user not logged in)");
                     }
@@ -467,7 +467,7 @@ if ($success && $amount_paid === "0.00") {
                         try {
                             await db.collection('users').doc(currentUserUid).collection('orders').add(orderData);
                             console.log('✅ SAVED TO USER SUBCOLLECTION');
-                            
+
                             // Also save to localStorage backup
                             const storageKey = `quintOrders_${currentUserUid}`;
                             const localOrders = JSON.parse(localStorage.getItem(storageKey)) || [];
@@ -487,7 +487,9 @@ if ($success && $amount_paid === "0.00") {
                             to_email: customer.email,
                             email: customer.email,
                             order_id: rzpOrderId,
-                            order_items_html: "<?php echo str_replace(array("\r", "\n"), '', addslashes($items_summary)); ?>",
+                            amount: amount.toFixed(2),
+                            items: '<?php echo str_replace(array("\r", "\n"), '', addslashes($items_summary)); ?>',
+                            from_name: 'Quint Beauty',
                             cost_shipping: "0.00",
                             cost_tax: "0.00",
                             cost_total: amount.toFixed(2),
@@ -502,7 +504,7 @@ if ($success && $amount_paid === "0.00") {
 
                         // User Email (Always try)
                         if (customer.email && customer.email !== 'No Email') {
-                            emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
+                            emailjs.send('service_xrl22yi', 'template_651p2ng', emailParams)
                                 .then(() => console.log('✅ User Email Sent'))
                                 .catch(e => console.error('❌ User Email Failed', e));
                         }
@@ -519,60 +521,74 @@ if ($success && $amount_paid === "0.00") {
 
 
 
-                // --- 3. FALLBACK: USER HISTORY (Secondary Auth Check) ---
+                // --- 3. FALLBACK: USER HISTORY & CLAIMING (Secondary Auth Check) ---
                 // This runs as a backup in case auth loaded AFTER the critical path
                 auth.onAuthStateChanged(async (user) => {
                     if (user) {
                         console.log("👤 Secondary auth check - User:", user.email);
 
-                        // Check if order already saved in critical path
                         const rzpOrderId = '<?php echo $rzp_order_id; ?>';
-                        
+
                         try {
-                            // Query user's orders to check if this order already exists
+                            // 1. Check/Update User Subcollection
                             const userOrdersRef = db.collection('users').doc(user.uid).collection('orders');
                             const existingQuery = await userOrdersRef.where('orderId', '==', rzpOrderId).get();
-                            
-                            if (!existingQuery.empty) {
-                                console.log('✅ Order already in user subcollection (saved in critical path)');
-                                return; // Skip duplicate save
+
+                            if (existingQuery.empty) {
+                                console.log('⚠️ Order NOT found in user subcollection - saving as fallback');
+                                // Reconstruct order data
+                                const paymentNotes = <?php echo $payment_notes_json; ?>;
+                                let cartItems = [];
+                                if (paymentNotes.cart_items_json) {
+                                    try { cartItems = JSON.parse(paymentNotes.cart_items_json); } catch (e) { }
+                                }
+                                const customer = getSafeCustomerInfo(paymentNotes, user.email);
+
+                                const orderData = {
+                                    orderId: rzpOrderId,
+                                    paymentId: '<?php echo $rzp_payment_id; ?>',
+                                    total: parseFloat("<?php echo $amount_paid; ?>"),
+                                    items: cartItems,
+                                    customerInfo: customer,
+                                    date: new Date().toISOString(),
+                                    status: 'paid',
+                                    source: 'fallback_auth_listener'
+                                };
+                                await userOrdersRef.add(orderData);
+                                console.log('✅ FALLBACK SAVE TO USER HISTORY');
+
+                                // Local Backup
+                                const storageKey = `quintOrders_${user.uid}`;
+                                const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
+                                const existsLocal = orders.some(o => o.orderId === rzpOrderId);
+                                if (!existsLocal) {
+                                    orders.push(orderData);
+                                    localStorage.setItem(storageKey, JSON.stringify(orders));
+                                }
+                            } else {
+                                console.log('✅ Order already in user subcollection');
                             }
-                            
-                            console.log('⚠️ Order NOT found in user subcollection - saving as fallback');
 
-                            // Reconstruct order data for fallback save
-                            const paymentNotes = <?php echo $payment_notes_json; ?>;
-                            let cartItems = [];
-                            if (paymentNotes.cart_items_json) {
-                                try { cartItems = JSON.parse(paymentNotes.cart_items_json); } catch (e) { }
-                            }
-                            const customer = getSafeCustomerInfo(paymentNotes, user.email);
+                            // 2. CRITICAL: Update Admin DB Order if it's missing UID (Claiming Code)
+                            // This fixes the issue where order exists in Admin DB but is unlinked (uid: null)
+                            const adminOrdersRef = db.collection('orders');
+                            const adminOrderQuery = await adminOrdersRef.where('orderId', '==', rzpOrderId).get();
 
-                            const orderData = {
-                                orderId: rzpOrderId,
-                                paymentId: '<?php echo $rzp_payment_id; ?>',
-                                total: parseFloat("<?php echo $amount_paid; ?>"),
-                                items: cartItems,
-                                customerInfo: customer,
-                                date: new Date().toISOString(),
-                                status: 'paid',
-                                source: 'fallback_auth_listener'
-                            };
-
-                            await db.collection('users').doc(user.uid).collection('orders').add(orderData);
-                            console.log('✅ FALLBACK SAVE TO USER HISTORY');
-
-                            // Local Backup
-                            const storageKey = `quintOrders_${user.uid}`;
-                            const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
-                            // Check for duplicate in localStorage too
-                            const existsLocal = orders.some(o => o.orderId === rzpOrderId);
-                            if (!existsLocal) {
-                                orders.push(orderData);
-                                localStorage.setItem(storageKey, JSON.stringify(orders));
+                            if (!adminOrderQuery.empty) {
+                                adminOrderQuery.forEach(async (doc) => {
+                                    const data = doc.data();
+                                    if (!data.uid || data.uid !== user.uid) {
+                                        console.log('🔗 Linking Admin DB order to user account...');
+                                        await doc.ref.update({
+                                            uid: user.uid,
+                                            email: user.email
+                                        });
+                                        console.log('✅ Admin DB order linked to user successfully');
+                                    }
+                                });
                             }
                         } catch (error) {
-                            console.error('❌ FALLBACK USER HISTORY SAVE FAILED:', error);
+                            console.error('❌ FALLBACK PROCESS FAILED:', error);
                         }
                     } else {
                         console.log("👤 User is Guest - Skipping History Save");
