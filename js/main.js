@@ -572,6 +572,8 @@ async function initiateRazorpayPayment(totalAmount) {
             // HYBRID APPROACH: Use callback_url for UPI/app redirects (mobile) + handler for in-browser payments
             // This is critical for Google Pay/UPI on mobile where app switching breaks JS context
             callback_url: window.location.origin + '/verify-payment.php',
+            redirect: true, // Attempt to force redirect flow
+            retry: { enabled: false }, // Prevent retry UI from blocking redirect
 
             prefill: {
                 name: formData.firstName + ' ' + formData.lastName,
