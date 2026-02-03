@@ -505,8 +505,13 @@ async function initiateRazorpayPayment(totalAmount) {
                 notes: {
                     email: formData.email,
                     name: formData.firstName + " " + formData.lastName,
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
                     phone: formData.phone,
                     address: formData.address,
+                    city: formData.city,
+                    state: formData.state,
+                    zipCode: formData.zipCode,
                     items_summary: cart.map(i => `${i.name} (x${i.quantity})`).join(', ')
                 }
             })

@@ -249,10 +249,24 @@ if ($success && $amount_paid === "0.00") {
                             }
                         }
 
-                        // Build customer info
+                        // --- ROBUST NAME & ADDRESS PARSING ---
+                        let fName = paymentNotes.firstName;
+                        let lName = paymentNotes.lastName;
+
+                        // Fallback: Parse 'name' if separate fields are missing
+                        if (!fName && paymentNotes.name) {
+                            const nameParts = paymentNotes.name.trim().split(' ');
+                            fName = nameParts[0];
+                            lName = nameParts.slice(1).join(' ');
+                        }
+
+                        // Fallback: Address
+                        // If separate fields like city are missing, try to infer or just keep empty
+
+                        // Build customer info object for Firestore
                         const customerInfo = {
-                            firstName: paymentNotes.firstName || '',
-                            lastName: paymentNotes.lastName || '',
+                            firstName: fName || 'Guest',
+                            lastName: lName || '',
                             email: user.email,
                             phone: paymentNotes.phone || '',
                             address: paymentNotes.address || '',
@@ -314,8 +328,8 @@ if ($success && $amount_paid === "0.00") {
 
             // Send Email on Page Load
             document.addEventListener('DOMContentLoaded', async () => {
-            <?php if ($success): ?>
-                        console.log("Preparing to send confirmation emails...");
+                <?php if ($success): ?>
+                    console.log("Preparing to send confirmation emails...");
 
                     const paymentNotes = <?php echo $payment_notes_json; ?>;
                     const orderId = "<?php echo $rzp_order_id; ?>";
@@ -357,8 +371,8 @@ if ($success && $amount_paid === "0.00") {
                         }, function (error) {
                             console.error('❌ Admin email failed:', error);
                         });
-            <?php endif; ?>
-        });
+                <?php endif; ?>
+            });
         </script>
     </div>
 </body>
