@@ -281,63 +281,13 @@ if ($success && $amount_paid === "0.00") {
                     };
                 }
 
-                // --- MAIN LOGIC: SAVE ORDER + SEND EMAIL ---
-                auth.onAuthStateChanged(async (user) => {
-                    console.log("Auth State:", user ? "Logged In" : "Guest/Logged Out");
-
-                    // 1. PREPARE DATA (Works for Guest or User)
-                    const paymentNotes = <?php echo $payment_notes_json; ?>;
-
-                    // Parse Cart
-                    let cartItems = [];
-                    if (paymentNotes.cart_items_json) {
-                        try { cartItems = JSON.parse(paymentNotes.cart_items_json); }
-                        catch (e) { console.error('Cart parse error', e); }
-                    }
-
-                    // Get Safe Customer Data
-                    // If user is null, pass empty string for email fallback
-                    const customer = getSafeCustomerInfo(paymentNotes, user ? user.email : '');
-
-                    // Construct Order Data
-                    const orderData = {
-                        orderId: '<?php echo $rzp_order_id; ?>',
-                        paymentId: '<?php echo $rzp_payment_id; ?>',
-                        total: parseFloat(<?php echo $amount_paid; ?>),
-                        items: cartItems,
-                        customerInfo: customer,
-                        date: new Date().toISOString(),
-                        status: 'paid', // Admin expects lowercase 'paid' usually, or 'Paid'
-                        source: 'mobile_redirect'
-                    };
-
-                    console.log("Processing Order:", orderData);
-
-                    // 2. SAVE TO FIRESTORE
-                    try {
-                        // A. Save to GLOBAL 'orders' collection (Required for Admin Portal)
-                        await db.collection('orders').add(orderData);
-                        console.log('✅ Saved to Global Admin Orders');
-
-                        // B. Save to USER history (If logged in)
-                        if (user) {
-                            await db.collection('users').doc(user.uid).collection('orders').add(orderData);
-                            console.log('✅ Saved to User History');
-
-                            // Local Backup
-                            const storageKey = `quintOrders_${user.uid}`;
-                            const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
-                            orders.push(orderData);
-                            localStorage.setItem(storageKey, JSON.stringify(orders));
-                        }
-                    } catch (error) {
-                        console.error('❌ Database Save Error:', error);
-                        // We continue to Email sending even if DB fails
-                    }
-
-                    // 3. SEND EMAILS (Using the same safe data)
+                // --- 1. SEND EMAILS IMMEDIATELY (Don't wait for auth) ---
+                document.addEventListener('DOMContentLoaded', () => {
                     <?php if ($success): ?>
-                        console.log("Sending Emails...");
+                        console.log("Sending confirmation emails...");
+
+                        const paymentNotes = <?php echo $payment_notes_json; ?>;
+                        const customer = getSafeCustomerInfo(paymentNotes, '');
 
                         const emailParams = {
                             to_email: customer.email,
@@ -348,8 +298,6 @@ if ($success && $amount_paid === "0.00") {
                             cost_tax: "0.00",
                             cost_total: "<?php echo $amount_paid; ?>",
                             customer_name: customer.fullName,
-
-                            // Admin fields
                             admin_email: 'beautyquint@gmail.com',
                             customer_email: customer.email,
                             customer_phone: customer.phone,
@@ -358,21 +306,74 @@ if ($success && $amount_paid === "0.00") {
                             order_date: new Date().toLocaleString('en-IN')
                         };
 
-                        // Send Customer Email
+                        // Customer Email
                         if (customer.email && customer.email !== 'No Email') {
                             emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
-                                .then(() => console.log('✅ Customer email sent!'))
-                                .catch(err => console.error('❌ Customer email failed:', err));
-                        } else {
-                            console.warn("Skipping customer email - No valid email address");
+                                .then(() => console.log('✅ Customer email sent'))
+                                .catch(err => console.error('❌ Customer email error:', err));
                         }
 
-                        // Send Admin Email (Always)
+                        // Admin Email
                         emailjs.send('service_xrl22yi', 'template_ryjw82n', emailParams)
-                            .then(() => console.log('✅ Admin email sent!'))
-                            .catch(err => console.error('❌ Admin email failed:', err));
-
+                            .then(() => console.log('✅ Admin email sent'))
+                            .catch(err => console.error('❌ Admin email error:', err));
                     <?php endif; ?>
+                });
+
+                // --- 2. SAVE TO DATABASE (When auth ready) ---
+                auth.onAuthStateChanged(async (user) => {
+                    console.log("Auth state:", user ? user.email : "Not logged in");
+
+                    const paymentNotes = <?php echo $payment_notes_json; ?>;
+
+                    // Parse Cart
+                    let cartItems = [];
+                    if (paymentNotes.cart_items_json) {
+                        try {
+                            cartItems = JSON.parse(paymentNotes.cart_items_json);
+                        } catch (e) {
+                            console.error('Cart parse error', e);
+                        }
+                    }
+
+                    const customer = getSafeCustomerInfo(paymentNotes, user ? user.email : '');
+
+                    const orderData = {
+                        orderId: '<?php echo $rzp_order_id; ?>',
+                        paymentId: '<?php echo $rzp_payment_id; ?>',
+                        total: parseFloat(<?php echo $amount_paid; ?>),
+                        items: cartItems,
+                        customerInfo: customer,
+                        date: new Date().toISOString(),
+                        status: 'paid',
+                        source: 'mobile_redirect'
+                    };
+
+                    console.log("Saving order:", orderData);
+
+                    // Save to global orders collection (for admin portal)
+                    try {
+                        await db.collection('orders').add(orderData);
+                        console.log('✅ Order saved to admin portal');
+                    } catch (error) {
+                        console.error('❌ Failed to save to orders collection:', error);
+                    }
+
+                    // Save to user's personal history (if logged in)
+                    if (user) {
+                        try {
+                            await db.collection('users').doc(user.uid).collection('orders').add(orderData);
+                            console.log('✅ Order saved to user history');
+
+                            // Local storage backup
+                            const storageKey = `quintOrders_${user.uid}`;
+                            const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
+                            orders.push(orderData);
+                            localStorage.setItem(storageKey, JSON.stringify(orders));
+                        } catch (error) {
+                            console.error('❌ Failed to save to user history:', error);
+                        }
+                    }
 
                     // Clear cart
                     localStorage.removeItem('quintCart');
