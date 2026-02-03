@@ -530,6 +530,30 @@ async function initiateRazorpayPayment(totalAmount) {
 
         console.log("Order Created Successfully:", orderData.id);
 
+        // --- NEW: SAVE DRAFT TO FIREBASE (Safety net for Mobile) ---
+        try {
+            await db.collection('pending_orders').doc(orderData.id).set({
+                customerInfo: {
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                    phone: formData.phone,
+                    address: formData.address,
+                    city: formData.city,
+                    state: formData.state,
+                    zipCode: formData.zipCode
+                },
+                items: cart,
+                items_summary: cart.map(i => `${i.name} (x${i.quantity})`).join(', '),
+                total: parseFloat(totalAmount),
+                timestamp: new Date().toISOString()
+            });
+            console.log('✅ Draft order saved to Firebase');
+        } catch (error) {
+            console.error('❌ Failed to save draft order:', error);
+        }
+        // -----------------------------------------------------------
+
         // Open Razorpay with the Server Options
         const options = {
             key: RAZORPAY_CONFIG.key_id,
