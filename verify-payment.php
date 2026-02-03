@@ -301,6 +301,13 @@ if ($success && $amount_paid === "0.00") {
                     }
 
                     // Defaults
+                    if ((!fName || fName === 'Guest') && (paymentNotes.email || userEmail)) {
+                        const em = paymentNotes.email || userEmail;
+                        if (em && em.includes('@')) {
+                            fName = em.split('@')[0];
+                        }
+                    }
+                    
                     fName = fName || 'Guest';
                     lName = lName || '';
                     const fullName = (fName + ' ' + lName).trim();
