@@ -534,6 +534,12 @@ async function initiateRazorpayPayment(totalAmount) {
 
         console.log("Order Created Successfully:", orderData.id);
 
+        // --- MOBILE PAYMENT BRIDGE: Store payment context for recovery ---
+        if (typeof window.storePendingPayment === 'function') {
+            window.storePendingPayment(orderData, formData);
+        }
+        // ----------------------------------------------------------------
+
         // --- NEW: SAVE DRAFT TO FIREBASE (Safety net for Mobile) ---
         try {
             await db.collection('pending_orders').doc(orderData.id).set({
@@ -571,11 +577,10 @@ async function initiateRazorpayPayment(totalAmount) {
             order_id: orderData.id,
             // -----------------------------------------------------
 
-            // HYBRID APPROACH: Use callback_url for UPI/app redirects (mobile) + handler for in-browser payments
-            // This is critical for Google Pay/UPI on mobile where app switching breaks JS context
-            callback_url: window.location.origin + '/verify-payment.php',
-            redirect: true, // Attempt to force redirect flow
-            retry: { enabled: false }, // Prevent retry UI from blocking redirect
+            // MOBILE FIX: Use callback_url for ALL payments (mobile + desktop)
+            // This ensures consistent behavior across all devices
+            // Razorpay will POST payment data to this URL after successful payment
+            callback_url: `${window.location.protocol}//${window.location.host}/verify-payment.php`,
 
             prefill: {
                 name: formData.firstName + ' ' + formData.lastName,
@@ -591,6 +596,7 @@ async function initiateRazorpayPayment(totalAmount) {
                 firstName: formData.firstName,
                 lastName: formData.lastName,
                 phone: formData.phone,
+                email: formData.email,
                 items_summary: cart.map(i => `${i.name} (x${i.quantity})`).join(', '),
                 cart_items_json: JSON.stringify(cart),
                 total_amount: totalAmount
@@ -600,38 +606,15 @@ async function initiateRazorpayPayment(totalAmount) {
                 color: RAZORPAY_CONFIG.theme_color
             },
 
-            // Handler for in-browser payments (cards, netbanking when no app redirect happens)
-            // Note: This won't fire for UPI app redirects, callback_url handles those
-            handler: function (response) {
-                console.log('Payment successful (handler), redirecting to verification...');
-
-                // Create a form to POST data to verify-payment.php
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = 'verify-payment.php';
-
-                // Add payment details as hidden fields
-                const fields = {
-                    'razorpay_payment_id': response.razorpay_payment_id,
-                    'razorpay_order_id': response.razorpay_order_id,
-                    'razorpay_signature': response.razorpay_signature
-                };
-
-                for (const key in fields) {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = fields[key];
-                    form.appendChild(input);
-                }
-
-                document.body.appendChild(form);
-                form.submit();
-            },
-
             modal: {
                 ondismiss: function () {
                     console.log('Payment cancelled by user');
+                },
+                // Prevent escape key from closing modal prematurely on mobile
+                escape: false,
+                // Handle payment completion - this fires BEFORE redirect
+                onhidden: function () {
+                    console.log('Payment modal closed - waiting for callback redirect');
                 }
             }
         };

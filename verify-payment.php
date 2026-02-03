@@ -17,17 +17,37 @@ $payment_notes_json = "{}";
 $logFile = 'payment_debug.txt';
 $logData = "Time: " . date('Y-m-d H:i:s') . "\n";
 $logData .= "Method: " . $_SERVER['REQUEST_METHOD'] . "\n";
+$logData .= "User-Agent: " . ($_SERVER['HTTP_USER_AGENT'] ?? 'Unknown') . "\n";
 $logData .= "POST Data: " . print_r($_POST, true) . "\n";
 $logData .= "GET Data: " . print_r($_GET, true) . "\n";
-$logData .= "Input Stream: " . file_get_contents('php://input') . "\n";
+$logData .= "Query String: " . ($_SERVER['QUERY_STRING'] ?? '') . "\n";
 $logData .= "-----------------------------------\n";
 file_put_contents($logFile, $logData, FILE_APPEND);
 // ---------------------
 
-// Check both POST and GET for payment details (mobile browsers may use GET)
-$rzp_payment_id = $_POST['razorpay_payment_id'] ?? $_GET['razorpay_payment_id'] ?? null;
-$rzp_order_id = $_POST['razorpay_order_id'] ?? $_GET['razorpay_order_id'] ?? null;
-$rzp_signature = $_POST['razorpay_signature'] ?? $_GET['razorpay_signature'] ?? null;
+// CRITICAL FIX: Accept parameters from both POST and GET
+// Mobile browsers (especially Safari/Chrome on iOS/Android) redirect via GET after payment
+// Desktop browsers usually submit via POST through JavaScript handler
+$rzp_payment_id = null;
+$rzp_order_id = null;
+$rzp_signature = null;
+
+// Try POST first (desktop/card payments)
+if (!empty($_POST['razorpay_payment_id'])) {
+    $rzp_payment_id = $_POST['razorpay_payment_id'];
+    $rzp_order_id = $_POST['razorpay_order_id'] ?? null;
+    $rzp_signature = $_POST['razorpay_signature'] ?? null;
+    $logData .= "SOURCE: POST (Desktop Flow)\n";
+    file_put_contents($logFile, $logData, FILE_APPEND);
+}
+// Fallback to GET (mobile redirect)
+else if (!empty($_GET['razorpay_payment_id'])) {
+    $rzp_payment_id = $_GET['razorpay_payment_id'];
+    $rzp_order_id = $_GET['razorpay_order_id'] ?? null;
+    $rzp_signature = $_GET['razorpay_signature'] ?? null;
+    $logData .= "SOURCE: GET (Mobile Redirect Flow)\n";
+    file_put_contents($logFile, $logData, FILE_APPEND);
+}
 
 // --- VERIFICATION LOGIC ---
 if ($rzp_payment_id && $rzp_order_id && $rzp_signature) {
@@ -109,9 +129,22 @@ if ($rzp_payment_id && $rzp_order_id && $rzp_signature) {
         $error = "Payment status verification failed. Status: " . ($payment_data['status'] ?? 'unknown');
     }
 } else {
-    // Case 3: No data at all
-    $debug_info = "POST: " . json_encode($_POST) . " | GET: " . json_encode($_GET);
-    $error = "Invalid Access. Missing payment details. <br><small>Debug: " . htmlspecialchars($debug_info) . "</small>";
+    // Case 3: No payment data received
+    $debugInfo = [
+        'method' => $_SERVER['REQUEST_METHOD'],
+        'has_post' => !empty($_POST),
+        'has_get' => !empty($_GET),
+        'post_keys' => !empty($_POST) ? array_keys($_POST) : [],
+        'get_keys' => !empty($_GET) ? array_keys($_GET) : [],
+        'user_agent' => substr($_SERVER['HTTP_USER_AGENT'] ?? 'Unknown', 0, 100)
+    ];
+
+    file_put_contents($logFile, "ERROR: No payment data found.\nDebug Info: " . print_r($debugInfo, true) . "\n---\n", FILE_APPEND);
+
+    $error = "Invalid Access. Missing payment details.<br><br>";
+    $error .= "<small style='color:#666;'>If you just completed payment on mobile, please contact support with this info:<br>";
+    $error .= "Request Method: " . htmlspecialchars($_SERVER['REQUEST_METHOD']) . "<br>";
+    $error .= "Time: " . date('Y-m-d H:i:s') . "</small>";
 }
 
 // -----------------------------------------------------------------------------
@@ -307,7 +340,7 @@ if ($success && $amount_paid === "0.00") {
                             fName = em.split('@')[0];
                         }
                     }
-                    
+
                     fName = fName || 'Guest';
                     lName = lName || '';
                     const fullName = (fName + ' ' + lName).trim();
