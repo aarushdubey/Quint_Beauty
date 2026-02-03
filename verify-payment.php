@@ -58,8 +58,7 @@ if ($rzp_payment_id && $rzp_order_id && $rzp_signature) {
     if (isset($payment_data['status']) && ($payment_data['status'] === 'captured' || $payment_data['status'] === 'authorized')) {
         $success = true;
 
-        // Fill in missing details from API response
-        // Use a Fallback ID if order_id is missing from API
+        // Get order_id from payment
         if (!empty($payment_data['order_id'])) {
             $rzp_order_id = $payment_data['order_id'];
         } else {
@@ -68,14 +67,43 @@ if ($rzp_payment_id && $rzp_order_id && $rzp_signature) {
 
         $amount_paid = number_format(($payment_data['amount'] ?? 0) / 100, 2);
 
-        // Capture notes if available
-        if (isset($payment_data['notes']['items_summary'])) {
-            $items_summary = $payment_data['notes']['items_summary'];
+        // CRITICAL: Fetch ORDER details to get complete customer notes
+        // Payment API doesn't always return full notes, but Order API does
+        if (!empty($payment_data['order_id'])) {
+            $ch_order = curl_init();
+            curl_setopt($ch_order, CURLOPT_URL, 'https://api.razorpay.com/v1/orders/' . $payment_data['order_id']);
+            curl_setopt($ch_order, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch_order, CURLOPT_USERPWD, $key_id . ':' . $key_secret);
+
+            $order_result = curl_exec($ch_order);
+            $order_data = json_decode($order_result, true);
+            curl_close($ch_order);
+
+            // Log order data
+            $debugLog = "Order API Result for " . $payment_data['order_id'] . ": " . print_r($order_data, true) . "\n----------------\n";
+            file_put_contents($logFile, $debugLog, FILE_APPEND);
+
+            // Use ORDER notes (contains full customer data)
+            if (isset($order_data['notes']) && !empty($order_data['notes'])) {
+                $payment_notes_json = json_encode($order_data['notes']);
+
+                // Extract items_summary if available
+                if (isset($order_data['notes']['items_summary'])) {
+                    $items_summary = $order_data['notes']['items_summary'];
+                }
+            } else {
+                $payment_notes_json = "{}";
+            }
         }
-        if (isset($payment_data['notes'])) {
-            $payment_notes_json = json_encode($payment_data['notes']);
-        } else {
-            $payment_notes_json = "{}";
+
+        // Fallback to payment notes if order fetch failed
+        if ($payment_notes_json === "{}") {
+            if (isset($payment_data['notes'])) {
+                $payment_notes_json = json_encode($payment_data['notes']);
+                if (isset($payment_data['notes']['items_summary'])) {
+                    $items_summary = $payment_data['notes']['items_summary'];
+                }
+            }
         }
     } else {
         $error = "Payment status verification failed. Status: " . ($payment_data['status'] ?? 'unknown');
