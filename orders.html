@@ -209,6 +209,11 @@
 
             <h3 class="fade-in-up delay-100" style="margin-bottom: 1.5rem;">Order History</h3>
 
+            <!-- Debug Container (Hidden unless ?debug=true) -->
+            <div id="debugLog"
+                style="display:none; background:#f0f0f0; padding:15px; margin-bottom:20px; border-radius:8px; font-family:monospace; font-size:12px; white-space:pre-wrap; border:1px solid #ccc;">
+            </div>
+
             <div id="ordersList" class="reveal delay-200">
                 <!-- Orders will be injected here -->
                 <div style="text-align: center; color: #777; padding: 4rem;">
@@ -343,14 +348,32 @@
                     }
                 }
 
+                // Check for debug mode
+                const urlParams = new URLSearchParams(window.location.search);
+                const isDebug = urlParams.get('debug') === 'true';
+                const log = (msg) => {
+                    console.log(msg);
+                    if (isDebug) {
+                        const debugEl = document.getElementById('debugLog');
+                        debugEl.style.display = 'block';
+                        debugEl.innerHTML += msg + '<br>';
+                    }
+                };
+
+                log(`👤 Fetching orders for User UID: ${user.uid}<br>📧 Email: ${user.email}`);
+
                 // Load Orders specific to this User UID
                 // TRY CLOUD FIRST
                 let orders = [];
                 if (window.getUserOrdersFromCloud) {
                     try {
-                        console.log("Fetching orders from Cloud Firestore...");
+                        log("☁️ Calling getUserOrdersFromCloud...");
                         orders = await window.getUserOrdersFromCloud(user.uid, user.email);
-                    } catch (e) { console.error("Cloud fetch failed", e); }
+                        log(`✅ Cloud returned ${orders.length} orders`);
+                    } catch (e) {
+                        log(`❌ Cloud fetch failed: ${e.message}`);
+                        console.error("Cloud fetch failed", e);
+                    }
                 }
 
                 // Fallback to Local Storage if Cloud is empty (or failed)

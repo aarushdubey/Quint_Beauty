@@ -53,7 +53,9 @@ export async function getUserOrdersFromCloud(userId, userEmail = null) {
                 const userOrdersRef = collection(db, "users", userId, "orders");
                 const userOrdersSnapshot = await getDocs(userOrdersRef);
                 userOrdersSnapshot.forEach(doc => {
-                    ordersMap.set(doc.id, { id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    const key = data.orderId || doc.id;
+                    ordersMap.set(key, { id: doc.id, ...data });
                 });
                 console.log(`Found ${userOrdersSnapshot.size} orders in user subcollection`);
             } catch (err) {
@@ -94,11 +96,15 @@ export async function getUserOrdersFromCloud(userId, userEmail = null) {
             }))
         );
 
-        // Populate map to deduplicate orders by Firestore Document ID
+        // Populate map to deduplicate orders by Order ID (safer than Doc ID)
         snapshots.forEach(snapshot => {
             if (snapshot && typeof snapshot.forEach === 'function') {
                 snapshot.forEach(doc => {
-                    ordersMap.set(doc.id, { id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    const key = data.orderId || doc.id; // Fallback to doc ID if orderId missing
+                    if (!ordersMap.has(key)) { // Only keep first occurrence
+                        ordersMap.set(key, { id: doc.id, ...data });
+                    }
                 });
             }
         });
