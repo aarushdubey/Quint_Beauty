@@ -652,33 +652,24 @@ async function initiateRazorpayPayment(totalAmount) {
 
 // Get checkout form data
 function getCheckoutFormData() {
-    const form = document.getElementById('checkoutForm');
-    if (!form) return null;
-
-    const fData = new FormData(form);
     const user = window.currentUser || {};
 
-    // Helper: Get from FormData -> Fallback to ID -> Fallback to User
-    const getVal = (name, id, userFallback) => {
-        let val = fData.get(name);
-        if (val && val.trim() !== '') return val.trim();
-
-        // Try DOM directly if FormData missed it (rare)
+    // Helper to get value or fallback
+    const getVal = (id, fallback) => {
         const el = document.getElementById(id);
-        if (el && el.value && el.value.trim() !== '') return el.value.trim();
-
-        return userFallback || '';
+        return (el && el.value.trim() !== '') ? el.value.trim() : fallback;
     };
 
     return {
-        email: getVal('email', 'email', user.email), // Name attr in HTML must assume 'email' logic, but typically ID matches
-        firstName: getVal('firstName', 'firstName', user.displayName ? user.displayName.split(' ')[0] : ''),
-        lastName: getVal('lastName', 'lastName', user.displayName ? user.displayName.split(' ').slice(1).join(' ') : ''),
-        phone: getVal('phone', 'phone', ''),
-        address: getVal('address', 'address', ''),
-        city: getVal('city', 'city', ''),
-        zipCode: getVal('zipCode', 'zipCode', ''),
-        state: getVal('state', 'state', '')
+        email: getVal('email', user.email || ''),
+        firstName: getVal('firstName', user.displayName ? user.displayName.split(' ')[0] : ''),
+        lastName: getVal('lastName', user.displayName ? user.displayName.split(' ').slice(1).join(' ') : ''),
+        // Address usually isn't in user object unless we sync it, so just form
+        address: getVal('address', ''),
+        city: getVal('city', ''),
+        zipCode: getVal('zipCode', ''),
+        state: getVal('state', ''),
+        phone: getVal('phone', '')
     };
 }
 

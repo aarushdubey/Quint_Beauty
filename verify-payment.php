@@ -307,7 +307,7 @@ if ($success && $amount_paid === "0.00") {
                             fName = em.split('@')[0];
                         }
                     }
-
+                    
                     fName = fName || 'Guest';
                     lName = lName || '';
                     const fullName = (fName + ' ' + lName).trim();
@@ -346,59 +346,27 @@ if ($success && $amount_paid === "0.00") {
                     // A. Prepare Data from PHP (The Source of Truth)
                     const rzpOrderId = '<?php echo $rzp_order_id; ?>';
                     const paymentNotes = <?php echo $payment_notes_json; ?>;
-                    const rzpPaymentId = '<?php echo $rzp_payment_id; ?>';
 
-                    // Default from PHP
+                    // Parse Cart
                     let cartItems = [];
                     if (paymentNotes.cart_items_json) {
                         try { cartItems = JSON.parse(paymentNotes.cart_items_json); }
                         catch (e) { console.error('Cart parse error', e); }
                     }
-                    let customer = getSafeCustomerInfo(paymentNotes, '');
-                    let amount = parseFloat("<?php echo $amount_paid; ?>");
-                    let itemsSummary = "<?php echo str_replace(array("\r", "\n"), '', addslashes($items_summary)); ?>";
 
-                    // --- RECOVER FROM FIREBASE DRAFT (Mobile Reliability) ---
-                    try {
-                        console.log("🔍 Attempting to recover draft for:", rzpOrderId);
-                        const draftDoc = await db.collection('pending_orders').doc(rzpOrderId).get();
-
-                        if (draftDoc.exists) {
-                            const draft = draftDoc.data();
-                            console.log("✅ DRAFT FOUND! Overwriting data with Firebase Draft:", draft);
-
-                            // Overwrite with trusted data
-                            if (draft.customerInfo) {
-                                customer = draft.customerInfo;
-                                // Ensure derived fields
-                                if (!customer.fullName) customer.fullName = (customer.firstName + ' ' + customer.lastName).trim();
-                            }
-                            if (draft.items && draft.items.length > 0) {
-                                cartItems = draft.items;
-                            }
-                            if (draft.total) {
-                                amount = parseFloat(draft.total);
-                            }
-                            if (draft.items_summary) {
-                                itemsSummary = draft.items_summary;
-                            }
-                        } else {
-                            console.warn("⚠️ No draft found. Using Razorpay API data.");
-                        }
-                    } catch (e) {
-                        console.error("❌ Draft recovery error:", e);
-                    }
-                    // -------------------------------------------------------
+                    // Generate Customer Info (Without user email fallback initially)
+                    const customer = getSafeCustomerInfo(paymentNotes, '');
+                    const amount = parseFloat("<?php echo $amount_paid; ?>");
 
                     const orderData = {
                         orderId: rzpOrderId,
-                        paymentId: rzpPaymentId,
+                        paymentId: '<?php echo $rzp_payment_id; ?>',
                         total: amount,
                         items: cartItems,
                         customerInfo: customer,
                         date: new Date().toISOString(),
                         status: 'paid',
-                        source: 'critical_path_v2'
+                        source: 'critical_path'
                     };
 
                     console.log("📦 Order Data Prepared:", orderData);
@@ -417,7 +385,7 @@ if ($success && $amount_paid === "0.00") {
                             to_email: customer.email,
                             email: customer.email,
                             order_id: rzpOrderId,
-                            order_items_html: itemsSummary,
+                            order_items_html: "<?php echo str_replace(array("\r", "\n"), '', addslashes($items_summary)); ?>",
                             cost_shipping: "0.00",
                             cost_tax: "0.00",
                             cost_total: amount.toFixed(2),
@@ -426,7 +394,7 @@ if ($success && $amount_paid === "0.00") {
                             customer_email: customer.email,
                             customer_phone: customer.phone,
                             customer_address: customer.address,
-                            payment_id: rzpPaymentId,
+                            payment_id: "<?php echo $rzp_payment_id; ?>",
                             order_date: new Date().toLocaleString('en-IN')
                         };
 
