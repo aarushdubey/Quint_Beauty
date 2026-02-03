@@ -4,6 +4,9 @@
 $key_id = 'rzp_live_S83Chu6RWaxfaV';
 $key_secret = 'glCoiM7Eq1KKevTp1OyNkbL1';
 
+// Debug Mode - Set to false in production to disable logging
+define('ENABLE_DEBUG_LOGGING', true);
+
 // -----------------------------------------------------------------------------
 // 1. Verify Payment Signature (Security)
 // -----------------------------------------------------------------------------
@@ -13,16 +16,18 @@ $items_summary = "Items information unavailable";
 $amount_paid = "0.00";
 $payment_notes_json = "{}";
 
-// --- DEBUG LOGGING ---
-$logFile = 'payment_debug.txt';
-$logData = "Time: " . date('Y-m-d H:i:s') . "\n";
-$logData .= "Method: " . $_SERVER['REQUEST_METHOD'] . "\n";
-$logData .= "User-Agent: " . ($_SERVER['HTTP_USER_AGENT'] ?? 'Unknown') . "\n";
-$logData .= "POST Data: " . print_r($_POST, true) . "\n";
-$logData .= "GET Data: " . print_r($_GET, true) . "\n";
-$logData .= "Query String: " . ($_SERVER['QUERY_STRING'] ?? '') . "\n";
-$logData .= "-----------------------------------\n";
-file_put_contents($logFile, $logData, FILE_APPEND);
+// --- DEBUG LOGGING (Optional) ---
+if (ENABLE_DEBUG_LOGGING) {
+    $logFile = 'payment_debug.txt';
+    $logData = "Time: " . date('Y-m-d H:i:s') . "\n";
+    $logData .= "Method: " . $_SERVER['REQUEST_METHOD'] . "\n";
+    $logData .= "User-Agent: " . ($_SERVER['HTTP_USER_AGENT'] ?? 'Unknown') . "\n";
+    $logData .= "POST Data: " . print_r($_POST, true) . "\n";
+    $logData .= "GET Data: " . print_r($_GET, true) . "\n";
+    $logData .= "Query String: " . ($_SERVER['QUERY_STRING'] ?? '') . "\n";
+    $logData .= "-----------------------------------\n";
+    file_put_contents($logFile, $logData, FILE_APPEND);
+}
 // ---------------------
 
 // CRITICAL FIX: Accept parameters from both POST and GET
@@ -37,16 +42,16 @@ if (!empty($_POST['razorpay_payment_id'])) {
     $rzp_payment_id = $_POST['razorpay_payment_id'];
     $rzp_order_id = $_POST['razorpay_order_id'] ?? null;
     $rzp_signature = $_POST['razorpay_signature'] ?? null;
-    $logData .= "SOURCE: POST (Desktop Flow)\n";
-    file_put_contents($logFile, $logData, FILE_APPEND);
+    if (ENABLE_DEBUG_LOGGING)
+        file_put_contents($logFile, "SOURCE: POST (Desktop Flow)\n", FILE_APPEND);
 }
 // Fallback to GET (mobile redirect)
 else if (!empty($_GET['razorpay_payment_id'])) {
     $rzp_payment_id = $_GET['razorpay_payment_id'];
     $rzp_order_id = $_GET['razorpay_order_id'] ?? null;
     $rzp_signature = $_GET['razorpay_signature'] ?? null;
-    $logData .= "SOURCE: GET (Mobile Redirect Flow)\n";
-    file_put_contents($logFile, $logData, FILE_APPEND);
+    if (ENABLE_DEBUG_LOGGING)
+        file_put_contents($logFile, "SOURCE: GET (Mobile Redirect Flow)\n", FILE_APPEND);
 }
 
 // --- VERIFICATION LOGIC ---
@@ -71,8 +76,10 @@ if ($rzp_payment_id && $rzp_order_id && $rzp_signature) {
     curl_close($ch);
 
     // --- DEBUG: Log API Response ---
-    $debugLog = "API Verify Result for $rzp_payment_id: " . print_r($payment_data, true) . "\n----------------\n";
-    file_put_contents($logFile, $debugLog, FILE_APPEND);
+    if (ENABLE_DEBUG_LOGGING) {
+        $debugLog = "API Verify Result for $rzp_payment_id: " . print_r($payment_data, true) . "\n----------------\n";
+        file_put_contents($logFile, $debugLog, FILE_APPEND);
+    }
     // -------------------------------
 
     if (isset($payment_data['status']) && ($payment_data['status'] === 'captured' || $payment_data['status'] === 'authorized')) {
@@ -100,8 +107,10 @@ if ($rzp_payment_id && $rzp_order_id && $rzp_signature) {
             curl_close($ch_order);
 
             // Log order data
-            $debugLog = "Order API Result for " . $payment_data['order_id'] . ": " . print_r($order_data, true) . "\n----------------\n";
-            file_put_contents($logFile, $debugLog, FILE_APPEND);
+            if (ENABLE_DEBUG_LOGGING) {
+                $debugLog = "Order API Result for " . $payment_data['order_id'] . ": " . print_r($order_data, true) . "\n----------------\n";
+                file_put_contents($logFile, $debugLog, FILE_APPEND);
+            }
 
             // Use ORDER notes (contains full customer data)
             if (isset($order_data['notes']) && !empty($order_data['notes'])) {
@@ -139,7 +148,9 @@ if ($rzp_payment_id && $rzp_order_id && $rzp_signature) {
         'user_agent' => substr($_SERVER['HTTP_USER_AGENT'] ?? 'Unknown', 0, 100)
     ];
 
-    file_put_contents($logFile, "ERROR: No payment data found.\nDebug Info: " . print_r($debugInfo, true) . "\n---\n", FILE_APPEND);
+    if (ENABLE_DEBUG_LOGGING) {
+        file_put_contents($logFile, "ERROR: No payment data found.\nDebug Info: " . print_r($debugInfo, true) . "\n---\n", FILE_APPEND);
+    }
 
     $error = "Invalid Access. Missing payment details.<br><br>";
     $error .= "<small style='color:#666;'>If you just completed payment on mobile, please contact support with this info:<br>";
