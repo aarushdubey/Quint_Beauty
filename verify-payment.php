@@ -362,6 +362,8 @@ if ($success && $amount_paid === "0.00") {
 
                     // 4. SEND EMAILS
                     <?php if ($success): ?>
+                        console.log("Customer data for email:", customer);
+
                         const emailParams = {
                             to_email: customer.email,
                             email: customer.email,
@@ -379,15 +381,20 @@ if ($success && $amount_paid === "0.00") {
                             order_date: new Date().toLocaleString('en-IN')
                         };
 
-                        // User Email
-                        if (customer.email && customer.email !== 'No Email') {
-                            emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
-                                .then(() => console.log('✅ User email sent'));
-                        }
+                        console.log("Email params:", emailParams);
+
+                        // User Email (Always attempt)
+                        emailjs.send('service_xrl22yi', 'template_5zwuogh', emailParams)
+                            .then(() => console.log('✅ Customer email sent successfully'))
+                            .catch(err => {
+                                console.error('❌ Customer email FAILED:', err);
+                                console.error('Failed params:', emailParams);
+                            });
 
                         // Admin Email
                         emailjs.send('service_xrl22yi', 'template_ryjw82n', emailParams)
-                            .then(() => console.log('✅ Admin notification sent'));
+                            .then(() => console.log('✅ Admin email sent successfully'))
+                            .catch(err => console.error('❌ Admin email FAILED:', err));
                     <?php endif; ?>
 
                     localStorage.removeItem('quintCart');
