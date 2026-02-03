@@ -128,14 +128,38 @@ if ($success && $amount_paid === "0.00") {
     $payment_data = json_decode($result, true);
     curl_close($ch);
 
-    if (isset($payment_data['notes']['items_summary'])) {
-        $items_summary = $payment_data['notes']['items_summary'];
-    }
+    // Initial data from Payment API
     if (isset($payment_data['amount'])) {
         $amount_paid = number_format($payment_data['amount'] / 100, 2);
     }
-    if (isset($payment_data['notes'])) {
+
+    // CRITICAL: Fetch ORDER details to get complete customer notes (Mirroring Mobile Logic)
+    $order_notes_found = false;
+    if (!empty($payment_data['order_id'])) {
+        $ch_order = curl_init();
+        curl_setopt($ch_order, CURLOPT_URL, 'https://api.razorpay.com/v1/orders/' . $payment_data['order_id']);
+        curl_setopt($ch_order, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch_order, CURLOPT_USERPWD, $key_id . ':' . $key_secret);
+
+        $order_result = curl_exec($ch_order);
+        $order_data = json_decode($order_result, true);
+        curl_close($ch_order);
+
+        if (isset($order_data['notes']) && !empty($order_data['notes'])) {
+            $payment_notes_json = json_encode($order_data['notes']);
+            if (isset($order_data['notes']['items_summary'])) {
+                $items_summary = $order_data['notes']['items_summary'];
+            }
+            $order_notes_found = true;
+        }
+    }
+
+    // Fallback to payment notes if order fetch failed/empty
+    if (!$order_notes_found && isset($payment_data['notes'])) {
         $payment_notes_json = json_encode($payment_data['notes']);
+        if (isset($payment_data['notes']['items_summary'])) {
+            $items_summary = $payment_data['notes']['items_summary'];
+        }
     }
 }
 
@@ -315,11 +339,11 @@ if ($success && $amount_paid === "0.00") {
                     // A. Prepare Data from PHP (The Source of Truth)
                     const rzpOrderId = '<?php echo $rzp_order_id; ?>';
                     const paymentNotes = <?php echo $payment_notes_json; ?>;
-                    
+
                     // Parse Cart
                     let cartItems = [];
                     if (paymentNotes.cart_items_json) {
-                        try { cartItems = JSON.parse(paymentNotes.cart_items_json); } 
+                        try { cartItems = JSON.parse(paymentNotes.cart_items_json); }
                         catch (e) { console.error('Cart parse error', e); }
                     }
 
@@ -389,16 +413,16 @@ if ($success && $amount_paid === "0.00") {
                 auth.onAuthStateChanged(async (user) => {
                     if (user) {
                         console.log("👤 User Logged In:", user.email);
-                        
+
                         // We reconstruct the data just for the user history save
                         const rzpOrderId = '<?php echo $rzp_order_id; ?>';
                         const paymentNotes = <?php echo $payment_notes_json; ?>;
                         let cartItems = [];
                         if (paymentNotes.cart_items_json) {
-                            try { cartItems = JSON.parse(paymentNotes.cart_items_json); } catch(e){}
+                            try { cartItems = JSON.parse(paymentNotes.cart_items_json); } catch (e) { }
                         }
                         const customer = getSafeCustomerInfo(paymentNotes, user.email);
-                        
+
                         const orderData = {
                             orderId: rzpOrderId,
                             paymentId: '<?php echo $rzp_payment_id; ?>',
@@ -412,7 +436,7 @@ if ($success && $amount_paid === "0.00") {
                         try {
                             await db.collection('users').doc(user.uid).collection('orders').add(orderData);
                             console.log('✅ SAVED TO USER HISTORY');
-                            
+
                             // Local Backup
                             const storageKey = `quintOrders_${user.uid}`;
                             const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
@@ -424,7 +448,7 @@ if ($success && $amount_paid === "0.00") {
                     } else {
                         console.log("👤 User is Guest - Skipping History Save");
                     }
-                    
+
                     localStorage.removeItem('quintCart');
                 });
             </script>
