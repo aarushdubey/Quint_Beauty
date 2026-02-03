@@ -152,6 +152,10 @@ window.saveOrderToCloud = saveOrderToCloud;
 window.getUserOrdersFromCloud = getUserOrdersFromCloud;
 window.updateStockOnOrder = updateStockOnOrder;
 
+// Make Firebase objects globally available
+window.db = db;
+window.auth = auth;
+
 
 // Current User State (can be accessed globally)
 window.currentUser = null;
