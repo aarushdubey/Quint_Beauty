@@ -646,15 +646,24 @@ async function initiateRazorpayPayment(totalAmount) {
 
 // Get checkout form data
 function getCheckoutFormData() {
+    const user = window.currentUser || {};
+
+    // Helper to get value or fallback
+    const getVal = (id, fallback) => {
+        const el = document.getElementById(id);
+        return (el && el.value.trim() !== '') ? el.value.trim() : fallback;
+    };
+
     return {
-        email: document.getElementById('email')?.value || '',
-        firstName: document.getElementById('firstName')?.value || '',
-        lastName: document.getElementById('lastName')?.value || '',
-        address: document.getElementById('address')?.value || '',
-        city: document.getElementById('city')?.value || '',
-        zipCode: document.getElementById('zipCode')?.value || '',
-        state: document.getElementById('state')?.value || '',
-        phone: document.getElementById('phone')?.value || ''
+        email: getVal('email', user.email || ''),
+        firstName: getVal('firstName', user.displayName ? user.displayName.split(' ')[0] : ''),
+        lastName: getVal('lastName', user.displayName ? user.displayName.split(' ').slice(1).join(' ') : ''),
+        // Address usually isn't in user object unless we sync it, so just form
+        address: getVal('address', ''),
+        city: getVal('city', ''),
+        zipCode: getVal('zipCode', ''),
+        state: getVal('state', ''),
+        phone: getVal('phone', '')
     };
 }
 
