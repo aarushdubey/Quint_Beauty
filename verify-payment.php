@@ -462,6 +462,25 @@ if ($success && $amount_paid === "0.00") {
                         console.error('❌ ADMIN DB SAVE FAILED:', error);
                     }
 
+                    // C. Save to User Subcollection (if logged in)
+                    if (currentUserUid) {
+                        try {
+                            await db.collection('users').doc(currentUserUid).collection('orders').add(orderData);
+                            console.log('✅ SAVED TO USER SUBCOLLECTION');
+                            
+                            // Also save to localStorage backup
+                            const storageKey = `quintOrders_${currentUserUid}`;
+                            const localOrders = JSON.parse(localStorage.getItem(storageKey)) || [];
+                            localOrders.push(orderData);
+                            localStorage.setItem(storageKey, JSON.stringify(localOrders));
+                            console.log('✅ SAVED TO LOCAL BACKUP');
+                        } catch (error) {
+                            console.error('❌ USER SUBCOLLECTION SAVE FAILED:', error);
+                        }
+                    } else {
+                        console.log('⏭️ Skipping user subcollection (guest order)');
+                    }
+
                     // C. Send Emails
                     <?php if ($success): ?>
                         const emailParams = {
@@ -499,45 +518,66 @@ if ($success && $amount_paid === "0.00") {
                 processCriticalTasks();
 
 
-                // --- 3. SECONDARY PATH: USER HISTORY (Waits for Auth) ---
+
+                // --- 3. FALLBACK: USER HISTORY (Secondary Auth Check) ---
+                // This runs as a backup in case auth loaded AFTER the critical path
                 auth.onAuthStateChanged(async (user) => {
                     if (user) {
-                        console.log("👤 User Logged In:", user.email);
+                        console.log("👤 Secondary auth check - User:", user.email);
 
-                        // We reconstruct the data just for the user history save
+                        // Check if order already saved in critical path
                         const rzpOrderId = '<?php echo $rzp_order_id; ?>';
-                        const paymentNotes = <?php echo $payment_notes_json; ?>;
-                        let cartItems = [];
-                        if (paymentNotes.cart_items_json) {
-                            try { cartItems = JSON.parse(paymentNotes.cart_items_json); } catch (e) { }
-                        }
-                        const customer = getSafeCustomerInfo(paymentNotes, user.email);
-
-                        const orderData = {
-                            orderId: rzpOrderId,
-                            paymentId: '<?php echo $rzp_payment_id; ?>',
-                            total: parseFloat("<?php echo $amount_paid; ?>"),
-                            items: cartItems,
-                            customerInfo: customer,
-                            date: new Date().toISOString(),
-                            status: 'paid'
-                        };
-
+                        
                         try {
+                            // Query user's orders to check if this order already exists
+                            const userOrdersRef = db.collection('users').doc(user.uid).collection('orders');
+                            const existingQuery = await userOrdersRef.where('orderId', '==', rzpOrderId).get();
+                            
+                            if (!existingQuery.empty) {
+                                console.log('✅ Order already in user subcollection (saved in critical path)');
+                                return; // Skip duplicate save
+                            }
+                            
+                            console.log('⚠️ Order NOT found in user subcollection - saving as fallback');
+
+                            // Reconstruct order data for fallback save
+                            const paymentNotes = <?php echo $payment_notes_json; ?>;
+                            let cartItems = [];
+                            if (paymentNotes.cart_items_json) {
+                                try { cartItems = JSON.parse(paymentNotes.cart_items_json); } catch (e) { }
+                            }
+                            const customer = getSafeCustomerInfo(paymentNotes, user.email);
+
+                            const orderData = {
+                                orderId: rzpOrderId,
+                                paymentId: '<?php echo $rzp_payment_id; ?>',
+                                total: parseFloat("<?php echo $amount_paid; ?>"),
+                                items: cartItems,
+                                customerInfo: customer,
+                                date: new Date().toISOString(),
+                                status: 'paid',
+                                source: 'fallback_auth_listener'
+                            };
+
                             await db.collection('users').doc(user.uid).collection('orders').add(orderData);
-                            console.log('✅ SAVED TO USER HISTORY');
+                            console.log('✅ FALLBACK SAVE TO USER HISTORY');
 
                             // Local Backup
                             const storageKey = `quintOrders_${user.uid}`;
                             const orders = JSON.parse(localStorage.getItem(storageKey)) || [];
-                            orders.push(orderData);
-                            localStorage.setItem(storageKey, JSON.stringify(orders));
+                            // Check for duplicate in localStorage too
+                            const existsLocal = orders.some(o => o.orderId === rzpOrderId);
+                            if (!existsLocal) {
+                                orders.push(orderData);
+                                localStorage.setItem(storageKey, JSON.stringify(orders));
+                            }
                         } catch (error) {
-                            console.error('❌ USER HISTORY SAVE FAILED:', error);
+                            console.error('❌ FALLBACK USER HISTORY SAVE FAILED:', error);
                         }
                     } else {
                         console.log("👤 User is Guest - Skipping History Save");
                     }
+
 
                     localStorage.removeItem('quintCart');
                 });
