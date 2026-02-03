@@ -489,18 +489,7 @@ async function initiateRazorpayPayment(totalAmount) {
     // Convert total to paise
     const amountInPaise = Math.round(totalAmount * 100);
 
-    // --- OPTION 2: CONFIRMATION MODAL (To Fix Mobile Autofill) ---
-    const confirmMsg = `Please confirm your details:\n\n` +
-        `Name: ${formData.firstName} ${formData.lastName}\n` +
-        `Email: ${formData.email}\n` +
-        `Phone: ${formData.phone}\n` +
-        `Address: ${formData.address}, ${formData.city}\n\n` +
-        `Proceed to Payment?`;
 
-    if (!window.confirm(confirmMsg)) {
-        return; // User cancelled
-    }
-    // -----------------------------------------------------------
 
     // Call Backend to Create Order
     try {
