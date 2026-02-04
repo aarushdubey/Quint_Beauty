@@ -1,0 +1,57 @@
+
+/* --- Premium Custom Cursor --- */
+body.custom-cursor-enabled,
+body.custom-cursor-enabled a,
+body.custom-cursor-enabled button,
+body.custom-cursor-enabled input {
+    cursor: none !important;
+}
+
+/* The small center dot */
+.cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-text-main);
+    border-radius: 50%;
+    z-index: 9999;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s, background-color 0.3s;
+}
+
+/* The larger ring follower */
+.cursor-outline {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--color-text-main); /* Thin elegant ring */
+    border-radius: 50%;
+    z-index: 9998;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s, background-color 0.3s, border-color 0.3s;
+}
+
+/* Hover State */
+.cursor-outline.hovering {
+    width: 60px;
+    height: 60px;
+    background-color: rgba(255, 255, 255, 0.1); /* Subtle backdrop */
+    border-color: transparent;
+    backdrop-filter: invert(1); /* Cool effect: inverts color behind it */
+}
+
+.cursor-dot.hovering {
+    background-color: transparent; /* Dot disappears or blends */
+}
+
+/* Magnetic Button Reset */
+.magnetic-btn {
+    transition: transform 0.1s linear; /* Fast response for magnetic feel, overriden by JS often */
+    /* Ensure z-index is handled if needed */
+}
