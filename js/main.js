@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             // Send to PHP backend
-            fetch('send-contact.php', {
+            fetch('send-contact', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -499,7 +499,7 @@ async function initiateRazorpayPayment(totalAmount) {
         console.log("Contacting Server to Create Order...");
 
         // Use 'create-order.php' logic
-        const response = await fetch('create-order.php', {
+        const response = await fetch('create-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -580,7 +580,7 @@ async function initiateRazorpayPayment(totalAmount) {
             // MOBILE FIX: Use callback_url for ALL payments (mobile + desktop)
             // This ensures consistent behavior across all devices
             // Razorpay will POST payment data to this URL after successful payment
-            callback_url: `${window.location.protocol}//${window.location.host}/verify-payment.php`,
+            callback_url: `${window.location.protocol}//${window.location.host}/verify-payment`,
 
             prefill: {
                 name: formData.firstName + ' ' + formData.lastName,
@@ -786,13 +786,13 @@ async function handlePaymentSuccess(response, formData, cart, totalAmount) {
             }
 
             // Redirect to Order Confirmation Page
-            window.location.href = 'order-confirmed.html';
+            window.location.href = 'order-confirmed';
         })
         .catch(function (error) {
             console.error('Email sending error:', error);
             // Redirect anyway - do not block user
             console.log("Redirecting despite email error...");
-            window.location.href = 'order-confirmed.html';
+            window.location.href = 'order-confirmed';
         });
 }
 
@@ -856,7 +856,7 @@ async function saveOrderToHistory(orderData) {
             localStorage.setItem('quintCart', JSON.stringify(cart));
             console.log("Cart prices auto-corrected.");
             // If on cart page, reload to show changes
-            if (window.location.pathname.includes('cart.html')) {
+            if (window.location.pathname.includes('cart')) {
                 setTimeout(() => window.location.reload(), 500);
             }
         }

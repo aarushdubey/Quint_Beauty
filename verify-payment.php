@@ -304,7 +304,7 @@ if ($success && $amount_paid === "0.00") {
 
             <p style="font-size: 0.9rem;">A confirmation email has been sent to you.</p>
 
-            <a href="index.html" class="btn">Return to Home</a>
+            <a href="index" class="btn">Return to Home</a>
 
             <!-- Firebase Scripts -->
             <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -604,7 +604,7 @@ if ($success && $amount_paid === "0.00") {
             <p>
                 <?php echo $error; ?>
             </p>
-            <a href="cart.html" class="btn" style="background: #dc3545;">Try Again</a>
+            <a href="cart" class="btn" style="background: #dc3545;">Try Again</a>
         <?php endif; ?>
     </div>
 </body>

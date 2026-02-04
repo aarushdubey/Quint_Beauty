@@ -44,7 +44,7 @@ async function loadShopProducts() {
         // Display products
         products.forEach((product, index) => {
             const productCard = document.createElement('a');
-            productCard.href = `product.html?id=${product.id}`;
+            productCard.href = `product?id=${product.id}`;
             productCard.className = 'product-card reveal';
             if (index > 0) productCard.classList.add(`delay-${index * 100}`);
 
