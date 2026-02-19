@@ -77,3 +77,12 @@ rzp-key.csv
 *.key
 secrets/
 config/keys.js
+
+# Dev/Test cleanup files
+cleanup-firestore.html
+razorpay-test.html
+
+# Development docs (not needed in production)
+MOBILE_PAYMENT_*.md
+PRODUCTION_READINESS_REPORT.md
+RAZORPAY_INTEGRATION.md
