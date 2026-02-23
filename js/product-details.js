@@ -122,6 +122,36 @@ async function loadProductDetails() {
                 }
             }
 
+            // Update Ingredients and How to Use tabs dynamically
+            const ingredientsDetails = document.querySelectorAll('.product-tabs details');
+            if (ingredientsDetails.length >= 1) {
+                // Ingredients section (first <details>)
+                const ingredientsSection = ingredientsDetails[0];
+                if (product.ingredients && product.ingredients.trim()) {
+                    const ingredientsParagraph = ingredientsSection.querySelector('p');
+                    if (ingredientsParagraph) {
+                        ingredientsParagraph.textContent = product.ingredients;
+                    }
+                } else {
+                    // Hide if no ingredients data
+                    ingredientsSection.style.display = 'none';
+                }
+            }
+
+            if (ingredientsDetails.length >= 2) {
+                // How to Use section (second <details>)
+                const howToUseSection = ingredientsDetails[1];
+                if (product.howToUse && product.howToUse.trim()) {
+                    const howToUseParagraph = howToUseSection.querySelector('p');
+                    if (howToUseParagraph) {
+                        howToUseParagraph.textContent = product.howToUse;
+                    }
+                } else {
+                    // Hide if no how-to-use data
+                    howToUseSection.style.display = 'none';
+                }
+            }
+
         } else {
             console.log('Product not found in Firestore');
             const container = document.querySelector('.product-details');

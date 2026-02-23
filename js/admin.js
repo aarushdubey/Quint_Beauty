@@ -906,6 +906,8 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
         const productData = {
             name: document.getElementById('productName').value,
             description: document.getElementById('productDescription').value,
+            ingredients: document.getElementById('productIngredients').value || '',
+            howToUse: document.getElementById('productHowToUse').value || '',
             price: parseFloat(document.getElementById('productPrice').value),
             stock: parseInt(document.getElementById('productStock').value),
             category: document.getElementById('productCategory').value,
@@ -959,6 +961,8 @@ window.editProduct = function (productId) {
 
     document.getElementById('productName').value = product.name;
     document.getElementById('productDescription').value = product.description;
+    document.getElementById('productIngredients').value = product.ingredients || '';
+    document.getElementById('productHowToUse').value = product.howToUse || '';
     document.getElementById('productPrice').value = product.price;
     document.getElementById('productStock').value = product.stock;
     document.getElementById('productCategory').value = product.category;
