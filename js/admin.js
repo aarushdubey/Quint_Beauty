@@ -934,7 +934,8 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
         }
 
         closeProductModal();
-        await loadDashboardData(); // Refresh list if function exists
+        await loadProducts(); // Refresh the products list
+        await loadDashboardData(); // Refresh dashboard stats
     } catch (error) {
         console.error('Error saving product:', error);
         alert('Error saving product: ' + error.message);
