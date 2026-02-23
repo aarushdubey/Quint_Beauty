@@ -863,3 +863,240 @@ async function saveOrderToHistory(orderData) {
     } catch (e) { console.error("Error auto-fixing prices:", e); }
 })();
 
+// =========================================
+// SEARCH OVERLAY FUNCTIONALITY
+// =========================================
+
+(function initSearch() {
+    // --- 1. Inject Search Overlay HTML into DOM ---
+    const searchOverlayHTML = `
+        <div id="searchOverlay" class="search-overlay">
+            <button class="search-close-btn" id="searchCloseBtn" aria-label="Close search">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div class="search-overlay-inner">
+                <div class="search-input-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" class="search-input-field" id="searchInput" placeholder="Search for products..." autocomplete="off" />
+                </div>
+                <div id="searchResultsArea">
+                    <p class="search-hint">Start typing to search products</p>
+                </div>
+                <p class="search-hint" id="searchKeyboardHint">Press <kbd>ESC</kbd> to close</p>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', searchOverlayHTML);
+
+    // --- 2. Cache & State ---
+    let cachedProducts = null;
+    let isSearchOpen = false;
+    let searchDebounceTimer = null;
+
+    const overlay = document.getElementById('searchOverlay');
+    const searchInput = document.getElementById('searchInput');
+    const searchResultsArea = document.getElementById('searchResultsArea');
+    const closeBtn = document.getElementById('searchCloseBtn');
+
+    // --- 3. Open / Close ---
+    function openSearch() {
+        if (isSearchOpen) return;
+        isSearchOpen = true;
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => searchInput.focus(), 100);
+
+        // Pre-fetch products on first open
+        if (!cachedProducts) {
+            fetchProducts();
+        }
+    }
+
+    function closeSearch() {
+        if (!isSearchOpen) return;
+        isSearchOpen = false;
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+        searchInput.value = '';
+        searchResultsArea.innerHTML = '<p class="search-hint">Start typing to search products</p>';
+    }
+
+    // --- 4. Fetch Products (Firestore → fallback to local DB) ---
+    async function fetchProducts() {
+        searchResultsArea.innerHTML = '<p class="search-hint">Loading products...</p>';
+
+        try {
+            // Try Firestore first (db is set globally by firebase-init.js)  
+            if (window.db) {
+                const { collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const productsRef = collection(window.db, 'products');
+                const q = query(productsRef, orderBy('name', 'asc'));
+                const snapshot = await getDocs(q);
+
+                cachedProducts = [];
+                snapshot.forEach((doc) => {
+                    cachedProducts.push({ id: doc.id, ...doc.data() });
+                });
+
+                console.log('Search: Loaded ' + cachedProducts.length + ' products from Firestore');
+            }
+        } catch (e) {
+            console.warn('Search: Firestore fetch failed, falling back to local DB', e);
+        }
+
+        // Fallback: use local productsDB if Firestore failed or not available
+        if (!cachedProducts || cachedProducts.length === 0) {
+            cachedProducts = [];
+            if (typeof productsDB !== 'undefined') {
+                for (const key in productsDB) {
+                    cachedProducts.push({
+                        id: key,
+                        name: productsDB[key].name,
+                        price: productsDB[key].price,
+                        image: productsDB[key].image
+                    });
+                }
+            }
+            console.log('Search: Using local DB with ' + cachedProducts.length + ' products');
+        }
+
+        searchResultsArea.innerHTML = '<p class="search-hint">Start typing to search products</p>';
+    }
+
+    // --- 5. Filter & Render Results ---
+    function filterAndRender(searchTerm) {
+        if (!searchTerm || searchTerm.trim() === '') {
+            searchResultsArea.innerHTML = '<p class="search-hint">Start typing to search products</p>';
+            return;
+        }
+
+        if (!cachedProducts) {
+            searchResultsArea.innerHTML = '<p class="search-hint">Loading products...</p>';
+            return;
+        }
+
+        const term = searchTerm.toLowerCase().trim();
+        const results = cachedProducts.filter(product => {
+            const name = (product.name || '').toLowerCase();
+            const desc = (product.description || product.desc || '').toLowerCase();
+            const category = (product.category || '').toLowerCase();
+            return name.includes(term) || desc.includes(term) || category.includes(term);
+        });
+
+        if (results.length === 0) {
+            searchResultsArea.innerHTML = `
+                <div class="search-no-results">
+                    <span>🔍</span>
+                    No products found for "<strong>${escapeHTML(searchTerm)}</strong>"
+                    <div style="margin-top: 1rem;">
+                        <a href="shop" style="color: rgba(255,255,255,0.6); text-decoration: underline;">Browse all products →</a>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        let html = `<p class="search-results-label">${results.length} product${results.length !== 1 ? 's' : ''} found</p>`;
+        html += '<div class="search-results-grid">';
+
+        results.forEach(product => {
+            const price = parseFloat(product.price).toFixed(2);
+            const link = `product?id=${product.id}`;
+            const img = product.image || 'assets/images/product-1.jpg';
+
+            html += `
+                <a href="${link}" class="search-result-item">
+                    <img src="${escapeHTML(img)}" alt="${escapeHTML(product.name)}" class="search-result-img" loading="lazy" />
+                    <div class="search-result-info">
+                        <div class="search-result-name">${highlightMatch(product.name, term)}</div>
+                        <div class="search-result-price">₹${price}</div>
+                    </div>
+                    <svg class="search-result-arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </a>
+            `;
+        });
+
+        html += '</div>';
+        searchResultsArea.innerHTML = html;
+    }
+
+    // --- 6. Helper: Highlight matching text ---
+    function highlightMatch(text, term) {
+        if (!term) return escapeHTML(text);
+        const escaped = escapeHTML(text);
+        const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi');
+        return escaped.replace(regex, '<strong style="color: #fff; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3);">$1</strong>');
+    }
+
+    function escapeHTML(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    // --- 7. Event Listeners ---
+
+    // Click search icon (any page)
+    document.addEventListener('click', function (e) {
+        const searchLink = e.target.closest('a[aria-label="Search"]');
+        if (searchLink) {
+            e.preventDefault();
+            openSearch();
+        }
+    });
+
+    // Close button
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeSearch);
+    }
+
+    // Click on backdrop to close
+    overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) {
+            closeSearch();
+        }
+    });
+
+    // Input handler with debounce
+    searchInput.addEventListener('input', function () {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => {
+            filterAndRender(searchInput.value);
+        }, 200);
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function (e) {
+        // ESC to close
+        if (e.key === 'Escape' && isSearchOpen) {
+            closeSearch();
+        }
+
+        // Ctrl/Cmd + K to open search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            if (isSearchOpen) {
+                closeSearch();
+            } else {
+                openSearch();
+            }
+        }
+    });
+
+    // Enter key submits first result
+    searchInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            const firstResult = searchResultsArea.querySelector('.search-result-item');
+            if (firstResult) {
+                window.location.href = firstResult.getAttribute('href');
+            }
+        }
+    });
+
+    console.log('Search overlay initialized ✓');
+})();
+
