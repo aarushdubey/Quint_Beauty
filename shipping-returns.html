@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="Shipping & Returns | Quint Beauty">
+    <meta name="description"
+        content="Learn about Quint Beauty's shipping policy, delivery timelines, return & exchange process, and refund information.">
+    <title>Shipping & Returns | Quint Beauty</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.0">
+    <style>
+        .policy-header {
+            padding: 6rem 0 3rem;
+            background-color: var(--color-bg-alt);
+            text-align: center;
+            margin-bottom: 0;
+        }
+
+        .policy-header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .policy-header p {
+            color: #666;
+            max-width: 500px;
+            margin: 0 auto;
+            font-size: 1.05rem;
+        }
+
+        /* Highlights Bar */
+        .policy-highlights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            padding: 3rem 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 3rem;
+        }
+
+        .highlight-item {
+            text-align: center;
+            padding: 1.5rem 1rem;
+        }
+
+        .highlight-item .icon-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #f5f0eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .highlight-item:hover .icon-circle {
+            transform: scale(1.1);
+            background: #ebe3d9;
+        }
+
+        .highlight-item h4 {
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+            font-weight: 600;
+        }
+
+        .highlight-item p {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        /* Policy Sections */
+        .policy-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .policy-section {
+            margin-bottom: 3rem;
+            padding-bottom: 3rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .policy-section:last-child {
+            border-bottom: none;
+        }
+
+        .policy-section h2 {
+            font-size: 1.6rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.75rem;
+        }
+
+        .policy-section h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: #333;
+        }
+
+        .policy-section p,
+        .policy-section li {
+            color: #555;
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
+
+        .policy-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+
+        .policy-section ul li {
+            padding: 0.5rem 0 0.5rem 1.5rem;
+            position: relative;
+        }
+
+        .policy-section ul li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .policy-section .note-box {
+            background: #faf8f5;
+            border-left: 3px solid #333;
+            padding: 1.2rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .policy-section .note-box strong {
+            color: #333;
+        }
+
+        /* Shipping Table */
+        .shipping-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .shipping-table th,
+        .shipping-table td {
+            padding: 1rem 1.2rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .shipping-table th {
+            background: #faf8f5;
+            font-weight: 600;
+            color: #333;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
+        .shipping-table td {
+            color: #555;
+        }
+
+        .shipping-table tbody tr:hover {
+            background: #fdfcfb;
+        }
+
+        /* Steps */
+        .return-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .step-card {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            background: #faf8f5;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .step-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .step-number {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #333;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .step-card h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .step-card p {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        /* CTA */
+        .policy-cta {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: #faf8f5;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        .policy-cta h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .policy-cta p {
+            color: #666;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        /* Cart Icon */
+        .cart-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--color-text-main);
+            color: var(--color-white);
+            font-size: 0.7rem;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 500;
+            padding: 0 4px;
+            line-height: 1;
+        }
+
+        @media (max-width: 600px) {
+            .policy-header h1 {
+                font-size: 2rem;
+            }
+
+            .shipping-table {
+                font-size: 0.8rem;
+            }
+
+            .shipping-table th,
+            .shipping-table td {
+                padding: 0.75rem 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header id="header">
+        <div class="container header-inner flex-between">
+            <button class="mobile-menu-btn" aria-label="Menu"><i data-feather="menu"></i></button>
+            <a href="index" class="logo">QUINT BEAUTY</a>
+            <nav class="nav-links">
+                <a href="index">Home</a>
+                <a href="shop">Shop</a>
+                <a href="about">About</a>
+                <a href="contact">Contact</a>
+            </nav>
+            <div class="nav-icons flex">
+                <a href="#" aria-label="Search"><i data-feather="search"></i></a>
+                <a href="orders" aria-label="My Orders" style="margin-right: 0.5rem;"><i data-feather="user"></i></a>
+                <a href="cart" aria-label="Cart" class="cart-icon">
+                    <i data-feather="shopping-bag"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="policy-header">
+        <div class="container fade-in-up">
+            <h1>Shipping & Returns</h1>
+            <p>Everything you need to know about getting your products delivered and our hassle-free return process.</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="section">
+        <div class="container">
+
+            <!-- Highlights Bar -->
+            <div class="policy-highlights fade-in-up delay-100">
+                <div class="highlight-item">
+                    <div class="icon-circle">
+                        <i data-feather="truck" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <h4>Free Shipping</h4>
+                    <p>On orders above ₹999</p>
+                </div>
+                <div class="highlight-item">
+                    <div class="icon-circle">
+                        <i data-feather="clock" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <h4>5–7 Business Days</h4>
+                    <p>Standard delivery across India</p>
+                </div>
+                <div class="highlight-item">
+                    <div class="icon-circle">
+                        <i data-feather="refresh-cw" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <h4>7‑Day Returns</h4>
+                    <p>Easy returns on eligible items</p>
+                </div>
+                <div class="highlight-item">
+                    <div class="icon-circle">
+                        <i data-feather="shield" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <h4>Secure Packaging</h4>
+                    <p>Tamper-proof sealed delivery</p>
+                </div>
+            </div>
+
+            <!-- Policy Sections -->
+            <div class="policy-content">
+
+                <!-- Shipping Policy -->
+                <div class="policy-section reveal">
+                    <h2>Shipping Policy</h2>
+                    <p>We currently ship across India. All orders are processed within <strong>1–2 business
+                            days</strong> (excluding weekends and holidays) after receiving your order confirmation.</p>
+
+                    <table class="shipping-table">
+                        <thead>
+                            <tr>
+                                <th>Shipping Method</th>
+                                <th>Estimated Delivery</th>
+                                <th>Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Standard Shipping</td>
+                                <td>5–7 business days</td>
+                                <td>₹70</td>
+                            </tr>
+                            <tr>
+                                <td>Express Shipping</td>
+                                <td>2–3 business days</td>
+                                <td>₹150</td>
+                            </tr>
+                            <tr>
+                                <td>Free Shipping</td>
+                                <td>5–7 business days</td>
+                                <td>Free on orders above ₹999</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="note-box">
+                        <strong>Please Note:</strong> Delivery timelines may vary for remote pin codes.
+                        You will receive a tracking link via email/SMS once your order has been dispatched.
+                    </div>
+
+                    <ul>
+                        <li>Orders placed after 2 PM IST will be processed the next business day</li>
+                        <li>All shipments are tamper-proof sealed for hygiene and safety</li>
+                        <li>COD (Cash on Delivery) is available on select orders</li>
+                        <li>We do not ship internationally at this time</li>
+                    </ul>
+                </div>
+
+                <!-- Return Policy -->
+                <div class="policy-section reveal">
+                    <h2>Return Policy</h2>
+                    <p>We want you to love your Quint Beauty products. If you're not completely satisfied, we accept
+                        returns within <strong>7 days</strong> of delivery, subject to the following conditions:</p>
+
+                    <h3 style="font-size: 1.1rem; margin: 1.5rem 0 0.75rem;">Eligible for Return</h3>
+                    <ul>
+                        <li>Product received is damaged or defective</li>
+                        <li>Wrong product delivered</li>
+                        <li>Product is unused, unopened, and in its original sealed packaging</li>
+                        <li>Product received past its expiry date</li>
+                    </ul>
+
+                    <h3 style="font-size: 1.1rem; margin: 1.5rem 0 0.75rem;">Not Eligible for Return</h3>
+                    <ul style="color: #888;">
+                        <li style="color: #888;">Products that have been opened, used, or swatched</li>
+                        <li style="color: #888;">Items purchased during sale or promotional offers (unless defective)
+                        </li>
+                        <li style="color: #888;">Products without original packaging and tags</li>
+                        <li style="color: #888;">Return requests raised after 7 days of delivery</li>
+                    </ul>
+
+                    <div class="note-box">
+                        <strong>Hygiene Policy:</strong> Due to the nature of cosmetic products, we cannot accept
+                        returns
+                        on items that have been opened or used. This is to ensure the safety and well-being of all our
+                        customers.
+                    </div>
+                </div>
+
+                <!-- How to Return -->
+                <div class="policy-section reveal">
+                    <h2>How to Initiate a Return</h2>
+                    <p>Follow these simple steps to begin your return process:</p>
+
+                    <div class="return-steps">
+                        <div class="step-card">
+                            <div class="step-number">1</div>
+                            <h4>Contact Us</h4>
+                            <p>Email us at support@quintbeauty.com with your order ID and reason</p>
+                        </div>
+                        <div class="step-card">
+                            <div class="step-number">2</div>
+                            <h4>Get Approval</h4>
+                            <p>Our team will review and approve your return within 24–48 hours</p>
+                        </div>
+                        <div class="step-card">
+                            <div class="step-number">3</div>
+                            <h4>Ship It Back</h4>
+                            <p>Pack the product securely and ship it to the address provided</p>
+                        </div>
+                        <div class="step-card">
+                            <div class="step-number">4</div>
+                            <h4>Get Refund</h4>
+                            <p>Refund initiated within 5–7 business days of receiving the product</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Refund Policy -->
+                <div class="policy-section reveal">
+                    <h2>Refund Policy</h2>
+                    <p>Once your return is received and inspected, we will send you an email notification regarding the
+                        approval or rejection of your refund.</p>
+
+                    <ul>
+                        <li>Approved refunds will be processed to the original payment method within <strong>5–7
+                                business days</strong></li>
+                        <li>For prepaid orders, the refund will be credited to your bank account or UPI</li>
+                        <li>For COD orders, refund will be processed via bank transfer (NEFT/IMPS)</li>
+                        <li>Shipping charges are non-refundable unless the return is due to our error</li>
+                        <li>Partial refunds may be granted for items not in original condition</li>
+                    </ul>
+
+                    <div class="note-box">
+                        <strong>Exchange:</strong> If you'd like to exchange a product instead of a refund, let us know
+                        in your return request. Exchanges are subject to product availability.
+                    </div>
+                </div>
+
+                <!-- Damaged / Missing Items -->
+                <div class="policy-section reveal">
+                    <h2>Damaged or Missing Items</h2>
+                    <p>If your order arrives damaged or if items are missing, please contact us within
+                        <strong>48 hours</strong> of delivery with:
+                    </p>
+                    <ul>
+                        <li>Your order number</li>
+                        <li>Clear photographs of the damaged product and packaging</li>
+                        <li>A brief description of the issue</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">We will arrange a free replacement or full refund for damaged/missing
+                        items — no questions asked.</p>
+                </div>
+
+                <!-- CTA -->
+                <div class="policy-cta reveal">
+                    <h3>Still Have Questions?</h3>
+                    <p>Our support team is happy to help you with any queries.</p>
+                    <a href="contact" class="btn btn-primary"
+                        style="padding: 1rem 2.5rem; letter-spacing: 0.1em;">CONTACT US</a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container grid footer-grid">
+            <div class="footer-col">
+                <a href="#" class="logo" style="color: white; display: block; margin-bottom: 1rem;">QUINT BEAUTY</a>
+                <p style="color: #aaa; max-width: 300px; font-size: 0.9rem;">
+                    Quint Beauty is dedicated to providing high-quality, minimal makeup products that enhance your
+                    natural beauty.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Shop</h4>
+                <ul>
+                    <li><a href="shop">All Products</a></li>
+                    <li><a href="#">Best Sellers</a></li>
+                    <li><a href="#">New Arrivals</a></li>
+                    <li><a href="#">Sets</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Help</h4>
+                <ul>
+                    <li><a href="shipping-returns">Shipping & Returns</a></li>
+                    <li><a href="contact">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Follow Us</h4>
+                <div class="flex" style="gap: 1rem;">
+                    <a href="https://www.instagram.com/quint.beauty/" target="_blank"
+                        style="display: flex; align-items: center; gap: 0.5rem; color: inherit;">
+                        <i data-feather="instagram" style="width: 20px; height: 20px;"></i>
+                        <span style="font-size: 0.9rem;">@quint.beauty</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="container"
+            style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #333; text-align: center; font-size: 0.8rem; color: #666;">
+            &copy; 2026 QUINT BEAUTY All rights reserved.
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>feather.replace();</script>
+    <script src="js/main.js?v=2026.1"></script>
+</body>
+
+</html>
