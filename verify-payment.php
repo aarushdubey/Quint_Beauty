@@ -483,6 +483,25 @@ if ($success && $amount_paid === "0.00") {
 
                     // C. Send Emails
                     <?php if ($success): ?>
+                        // Generate items HTML for email templates
+                        let itemsHTML = '';
+                        try {
+                            cartItems.forEach(item => {
+                                itemsHTML += `
+                                    <table style="width: 100%; border-collapse: collapse">
+                                        <tr style="vertical-align: top">
+                                          <td style="padding: 12px 0;">
+                                            <strong style="font-size:14px; display:block;">${item.name}</strong>
+                                            <div style="font-size: 13px; color: #888;">Qty: ${item.quantity}</div>
+                                          </td>
+                                          <td style="padding: 12px 0; text-align:right; white-space: nowrap">
+                                            <strong>₹${item.price}</strong>
+                                          </td>
+                                        </tr>
+                                    </table>`;
+                            });
+                        } catch (e) { console.error("Error generating email HTML", e); }
+
                         const emailParams = {
                             to_email: customer.email,
                             email: customer.email,
@@ -499,7 +518,8 @@ if ($success && $amount_paid === "0.00") {
                             customer_phone: customer.phone,
                             customer_address: customer.address,
                             payment_id: "<?php echo $rzp_payment_id; ?>",
-                            order_date: new Date().toLocaleString('en-IN')
+                            order_date: new Date().toLocaleString('en-IN'),
+                            order_items_html: itemsHTML
                         };
 
                         // User Email (Always try)

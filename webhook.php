@@ -37,35 +37,11 @@ if ($data['event'] === 'payment.captured') {
     $amount = $payment['amount'] / 100; // Convert back to Rupees
 
     if ($email) {
-        // -----------------------------------------------------------------------------
-        // 3. Send Email (Server-Side Reliability)
-        // -----------------------------------------------------------------------------
-        $to = $email;
-        $subject = "Order Confirmed - Quint Beauty";
-
-        $message = "
-        Hi $name,
-        
-        Thank you for your order! We have received your payment of ₹$amount.
-        
-        Order Details:
-        $items
-        
-        We will ship your items shortly.
-        
-        Regards,
-        Quint Beauty Team
-        ";
-
-        $headers = "From: no-reply@quintbeauty.com" . "\r\n" .
-            "Reply-To: support@quintbeauty.com" . "\r\n" .
-            "X-Mailer: PHP/" . phpversion();
-
-        // Send user email
-        mail($to, $subject, $message, $headers);
-
-        // Send admin notification
-        mail('beautyquint@gmail.com', "New Order from $name", "New payment of ₹$amount. Items: $items", $headers);
+        // Emails are handled by EmailJS on the client-side (verify-payment.php)
+        // with proper HTML templates. No server-side plain text email needed.
+        // Log the successful payment for reference.
+        $logMessage = date('Y-m-d H:i:s') . " - Payment captured: ₹$amount from $name ($email) - Items: $items\n";
+        file_put_contents('payment_log.txt', $logMessage, FILE_APPEND);
     }
 }
 
