@@ -481,8 +481,9 @@ if ($success && $amount_paid === "0.00") {
                         console.log('⏭️ Skipping user subcollection (guest order)');
                     }
 
-                    // C. Send Emails
+                    // C. Send Emails (Independent - must run even if Firebase fails)
                     <?php if ($success): ?>
+                    try {
                         // Generate items HTML for email templates
                         let itemsHTML = '';
                         try {
@@ -501,6 +502,11 @@ if ($success && $amount_paid === "0.00") {
                                     </table>`;
                             });
                         } catch (e) { console.error("Error generating email HTML", e); }
+
+                        // Fallback if no cart items were parsed
+                        if (!itemsHTML) {
+                            itemsHTML = '<p style="color:#666;">Items: <?php echo str_replace(array("\r", "\n", "'"), '', addslashes($items_summary)); ?></p>';
+                        }
 
                         const emailParams = {
                             to_email: customer.email,
@@ -522,6 +528,8 @@ if ($success && $amount_paid === "0.00") {
                             order_items_html: itemsHTML
                         };
 
+                        console.log("📧 Sending emails with params:", emailParams);
+
                         // User Email (Always try)
                         if (customer.email && customer.email !== 'No Email') {
                             emailjs.send('service_xrl22yi', 'template_651p2ng', emailParams)
@@ -533,6 +541,9 @@ if ($success && $amount_paid === "0.00") {
                         emailjs.send('service_xrl22yi', 'template_ryjw82n', emailParams)
                             .then(() => console.log('✅ Admin Email Sent'))
                             .catch(e => console.error('❌ Admin Email Failed', e));
+                    } catch (emailError) {
+                        console.error('❌ Email setup failed:', emailError);
+                    }
                     <?php endif; ?>
                 }
 
