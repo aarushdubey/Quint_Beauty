@@ -315,6 +315,7 @@ function renderCartPage() {
                         <img src="${item.image}" class="cart-item-img" alt="${item.name}" style="width: 80px; height: 80px; object-fit: cover; background: #f9f9f9;">
                         <div>
                             <h4 style="margin-bottom: 0.2rem;">${item.name}</h4>
+                            ${item.shade ? `<p style="font-size: 0.8rem; color: #7c3aed; margin-bottom: 0.2rem;">Shade: ${item.shade}</p>` : ''}
                             <p style="font-size: 0.9rem; color: #777;">₹${item.price}</p>
                             <button class="remove-item-btn" data-index="${index}" style="color: red; font-size: 0.8rem; text-decoration: underline; margin-top: 0.5rem; border:none; background:none; cursor:pointer;">Remove</button>
                         </div>
@@ -405,6 +406,7 @@ function renderCheckoutPage() {
                     <img src="${item.image}" style="width: 60px; height: 60px; object-fit: cover; background: #f9f9f9; min-width: 60px;">
                     <div style="flex: 1;">
                         <h4 style="font-size: 0.9rem; margin-bottom: 0.2rem;">${item.name}</h4>
+                        ${item.shade ? `<p style="font-size: 0.75rem; color: #7c3aed;">Shade: ${item.shade}</p>` : ''}
                         <p style="font-size: 0.8rem; color: #777;">Qty: ${item.quantity}</p>
                     </div>
                     <span>₹${itemTotal.toFixed(2)}</span>

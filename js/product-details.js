@@ -1,15 +1,20 @@
 import { db } from './firebase-init.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
+let currentProduct = null;
+let currentProductId = null;
+let selectedShade = null;
+
 // Load Product Details
 async function loadProductDetails() {
     const params = new URLSearchParams(window.location.search);
     const productId = params.get('id');
 
     if (!productId) {
-        // No ID, maybe redirect or just stop
         return;
     }
+
+    currentProductId = productId;
 
     try {
         console.log('Loading product from Firestore:', productId);
@@ -18,6 +23,7 @@ async function loadProductDetails() {
 
         if (productSnap.exists()) {
             const product = productSnap.data();
+            currentProduct = product;
             console.log('Product data:', product);
 
             // Update Title
@@ -37,40 +43,15 @@ async function loadProductDetails() {
             const descEl = document.querySelector('.product-description');
             if (descEl) descEl.textContent = product.description;
 
-            // Update Main Image and Gallery
-            const images = product.images || (product.image ? [product.image] : []);
-
-            // Set Main Image
-            const mainImg = document.getElementById('mainImg');
-            if (mainImg && images.length > 0) {
-                mainImg.src = images[0]; // Default to first
-                mainImg.alt = product.name;
-            }
-
-            // Update Thumbnails
-            const thumbsContainer = document.querySelector('.product-thumbs');
-            if (thumbsContainer) {
-                thumbsContainer.innerHTML = ''; // Clear static defaults
-
-                images.forEach((imgUrl, index) => {
-                    const thumbDiv = document.createElement('div');
-                    thumbDiv.className = `thumb ${index === 0 ? 'active' : ''}`;
-
-                    // Add click handler
-                    thumbDiv.onclick = function () {
-                        const main = document.getElementById('mainImg');
-                        if (main) main.src = imgUrl;
-                        document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
-                        this.classList.add('active');
-                    };
-
-                    const img = document.createElement('img');
-                    img.src = imgUrl;
-                    img.alt = `${product.name} ${index + 1}`;
-
-                    thumbDiv.appendChild(img);
-                    thumbsContainer.appendChild(thumbDiv);
-                });
+            // Check if product has shades
+            if (product.hasShades && product.shades && product.shades.length > 0) {
+                renderShadeSelector(product);
+                // Select first shade by default
+                selectShade(0, product);
+            } else {
+                // No shades — use regular gallery
+                const images = product.images || (product.image ? [product.image] : []);
+                updateGallery(images, product.name);
             }
 
             // Quantity Selector Logic
@@ -79,7 +60,6 @@ async function loadProductDetails() {
             const qtyInput = document.getElementById('quantity');
 
             if (qtyMinus && qtyPlus && qtyInput) {
-                // Remove old listeners by cloning (if needed, but id selection is unique)
                 const newMinus = qtyMinus.cloneNode(true);
                 qtyMinus.parentNode.replaceChild(newMinus, qtyMinus);
                 const newPlus = qtyPlus.cloneNode(true);
@@ -99,14 +79,11 @@ async function loadProductDetails() {
             // Handle Stock
             const addToCartBtn = document.querySelector('.add-to-cart');
             if (addToCartBtn) {
-                // Reset button state
                 addToCartBtn.disabled = false;
                 addToCartBtn.textContent = 'ADD TO CART';
                 addToCartBtn.style.opacity = '1';
                 addToCartBtn.style.cursor = 'pointer';
 
-                // Add click event for cart
-                // Remove old listeners (cloning trick)
                 const newBtn = addToCartBtn.cloneNode(true);
                 addToCartBtn.parentNode.replaceChild(newBtn, addToCartBtn);
 
@@ -125,7 +102,6 @@ async function loadProductDetails() {
             // Update Ingredients and How to Use tabs dynamically
             const ingredientsDetails = document.querySelectorAll('.product-tabs details');
             if (ingredientsDetails.length >= 1) {
-                // Ingredients section (first <details>)
                 const ingredientsSection = ingredientsDetails[0];
                 if (product.ingredients && product.ingredients.trim()) {
                     const ingredientsParagraph = ingredientsSection.querySelector('p');
@@ -133,13 +109,11 @@ async function loadProductDetails() {
                         ingredientsParagraph.textContent = product.ingredients;
                     }
                 } else {
-                    // Hide if no ingredients data
                     ingredientsSection.style.display = 'none';
                 }
             }
 
             if (ingredientsDetails.length >= 2) {
-                // How to Use section (second <details>)
                 const howToUseSection = ingredientsDetails[1];
                 if (product.howToUse && product.howToUse.trim()) {
                     const howToUseParagraph = howToUseSection.querySelector('p');
@@ -147,7 +121,6 @@ async function loadProductDetails() {
                         howToUseParagraph.textContent = product.howToUse;
                     }
                 } else {
-                    // Hide if no how-to-use data
                     howToUseSection.style.display = 'none';
                 }
             }
@@ -164,24 +137,146 @@ async function loadProductDetails() {
     }
 }
 
+// ========== SHADE SELECTOR UI ==========
+
+function renderShadeSelector(product) {
+    const productDetails = document.querySelector('.product-details');
+    if (!productDetails) return;
+
+    // Find where to insert — after description, before actions
+    const description = productDetails.querySelector('.product-description');
+    const actions = productDetails.querySelector('.actions');
+
+    if (!description || !actions) return;
+
+    // Check if shade selector already exists
+    let existingSelector = document.getElementById('shadeSelector');
+    if (existingSelector) existingSelector.remove();
+
+    // Create shade selector container
+    const selectorDiv = document.createElement('div');
+    selectorDiv.id = 'shadeSelector';
+    selectorDiv.className = 'shade-selector';
+    selectorDiv.innerHTML = `
+        <div class="shade-selector-header">
+            <span class="shade-selector-label">SELECT SHADE</span>
+            <span class="shade-selected-name" id="selectedShadeName">${product.shades[0].name}</span>
+        </div>
+        <div class="shade-swatches" id="shadeSwatches">
+            ${product.shades.map((shade, index) => `
+                <button
+                    class="shade-swatch-btn ${index === 0 ? 'active' : ''}"
+                    data-shade-index="${index}"
+                    title="${shade.name}"
+                    aria-label="Select shade: ${shade.name}"
+                >
+                    <img src="${shade.swatchUrl}" alt="${shade.name}" class="shade-swatch-image">
+                    <span class="shade-swatch-ring"></span>
+                </button>
+            `).join('')}
+        </div>
+    `;
+
+    // Insert before actions
+    actions.parentNode.insertBefore(selectorDiv, actions);
+
+    // Add event listeners
+    const swatchBtns = selectorDiv.querySelectorAll('.shade-swatch-btn');
+    swatchBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const index = parseInt(btn.dataset.shadeIndex);
+            selectShade(index, product);
+
+            // Update active state
+            swatchBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+}
+
+function selectShade(index, product) {
+    const shade = product.shades[index];
+    if (!shade) return;
+
+    selectedShade = shade;
+
+    // Update shade name display
+    const nameEl = document.getElementById('selectedShadeName');
+    if (nameEl) nameEl.textContent = shade.name;
+
+    // Update gallery with shade-specific images
+    const galleryImages = shade.galleryUrls || [];
+    if (galleryImages.length > 0) {
+        updateGallery(galleryImages, `${product.name} - ${shade.name}`);
+    }
+}
+
+function updateGallery(images, altText) {
+    // Set Main Image
+    const mainImg = document.getElementById('mainImg');
+    if (mainImg && images.length > 0) {
+        mainImg.src = images[0];
+        mainImg.alt = altText;
+    }
+
+    // Update Thumbnails
+    const thumbsContainer = document.querySelector('.product-thumbs');
+    if (thumbsContainer) {
+        thumbsContainer.innerHTML = '';
+
+        images.forEach((imgUrl, index) => {
+            const thumbDiv = document.createElement('div');
+            thumbDiv.className = `thumb ${index === 0 ? 'active' : ''}`;
+
+            thumbDiv.onclick = function () {
+                const main = document.getElementById('mainImg');
+                if (main) main.src = imgUrl;
+                document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            };
+
+            const img = document.createElement('img');
+            img.src = imgUrl;
+            img.alt = `${altText} ${index + 1}`;
+
+            thumbDiv.appendChild(img);
+            thumbsContainer.appendChild(thumbDiv);
+        });
+    }
+}
+
+
 // Simple Cart Functionality for Firestore products
 function addToCart(product, id) {
     let cart = JSON.parse(localStorage.getItem('quintCart')) || [];
 
-    // Check if item exists
-    const existingItem = cart.find(item => item.id === id);
-
     const quantityInput = document.getElementById('quantity');
     const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+
+    // Build a unique key that includes shade
+    const shadeName = selectedShade ? selectedShade.name : null;
+    const cartItemId = shadeName ? `${id}_shade_${shadeName}` : id;
+
+    // Check if item exists (with same shade)
+    const existingItem = cart.find(item => item.id === cartItemId);
+
+    // Use shade-specific image or fallback
+    const itemImage = selectedShade && selectedShade.galleryUrls && selectedShade.galleryUrls.length > 0
+        ? selectedShade.galleryUrls[0]
+        : product.image;
+
+    const itemName = shadeName ? `${product.name} - ${shadeName}` : product.name;
 
     if (existingItem) {
         existingItem.quantity += quantity;
     } else {
         cart.push({
-            id: id,
-            name: product.name,
+            id: cartItemId,
+            productId: id,
+            name: itemName,
+            shade: shadeName || null,
             price: product.price,
-            image: product.image,
+            image: itemImage,
             quantity: quantity
         });
     }
@@ -194,7 +289,7 @@ function addToCart(product, id) {
     // Show feedback
     const btn = document.querySelector('.add-to-cart');
     const originalText = btn.textContent;
-    btn.textContent = 'ADDED!';
+    btn.textContent = shadeName ? `ADDED ${shadeName.toUpperCase()}!` : 'ADDED!';
     setTimeout(() => {
         btn.textContent = originalText;
     }, 2000);

@@ -62,6 +62,9 @@ async function loadShopProducts() {
                 </div>
                 <div class="product-info">
                     <h3 style="font-size: 1.1rem; margin-bottom: 0.3rem;">${product.name}</h3>
+                    ${product.hasShades && product.shades && product.shades.length > 0
+                    ? `<p style="font-size: 0.8rem; color: #7c3aed; margin-bottom: 0.2rem;">🎨 ${product.shades.length} shade${product.shades.length > 1 ? 's' : ''} available</p>`
+                    : ''}
                     <p style="color: var(--color-text-muted);">₹${parseFloat(product.price).toFixed(2)}</p>
                 </div>
             `;

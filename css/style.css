@@ -497,6 +497,7 @@ footer {
     font-weight: 500;
     color: var(--color-text-main);
     -moz-appearance: textfield;
+    appearance: textfield;
     background: transparent;
 }
 
@@ -736,5 +737,180 @@ footer {
     .search-close-btn {
         top: 1rem;
         right: 1rem;
+    }
+}
+
+/* ========== PRODUCT SHADE SELECTOR (Customer Facing) ========== */
+.shade-selector {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.shade-selector-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.shade-selector-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #888;
+    font-weight: 500;
+}
+
+.shade-selected-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    position: relative;
+    padding-left: 0.75rem;
+}
+
+.shade-selected-name::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: #ccc;
+    font-weight: 300;
+}
+
+.shade-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.shade-swatch-btn {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    background: transparent;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    outline: none;
+}
+
+.shade-swatch-btn:hover {
+    transform: scale(1.15);
+}
+
+.shade-swatch-btn:focus-visible {
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3);
+    border-radius: 50%;
+}
+
+.shade-swatch-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e5e5e5;
+    transition: border-color 0.3s;
+}
+
+.shade-swatch-ring {
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: border-color 0.3s, transform 0.3s;
+    pointer-events: none;
+}
+
+.shade-swatch-btn.active .shade-swatch-ring {
+    border-color: #1a1a1a;
+}
+
+.shade-swatch-btn.active .shade-swatch-image {
+    border-color: transparent;
+}
+
+.shade-swatch-btn.active {
+    transform: scale(1.1);
+}
+
+/* Tooltip on hover */
+.shade-swatch-btn::after {
+    content: attr(title);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: #1a1a1a;
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-family: var(--font-body);
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s, transform 0.25s, visibility 0.25s;
+    pointer-events: none;
+    z-index: 10;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.shade-swatch-btn::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1a1a1a;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s, visibility 0.25s;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.shade-swatch-btn:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+.shade-swatch-btn:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Mobile adjustments for shade selector */
+@media (max-width: 600px) {
+    .shade-swatch-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .shade-swatch-btn::after,
+    .shade-swatch-btn::before {
+        display: none;
+    }
+
+    .shade-selector-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem;
+    }
+
+    .shade-selected-name {
+        padding-left: 0;
+    }
+
+    .shade-selected-name::before {
+        display: none;
     }
 }

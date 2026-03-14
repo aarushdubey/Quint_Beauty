@@ -347,3 +347,181 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ========== SHADE TOGGLE SWITCH ========== */
+.shade-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.shade-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.shade-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: 0.4s;
+    border-radius: 28px;
+}
+
+.shade-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+input:checked + .shade-toggle-slider {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+}
+
+input:checked + .shade-toggle-slider:before {
+    transform: translateX(24px);
+}
+
+/* ========== SHADE MINI DROPZONE ========== */
+.shade-mini-dropzone {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 0.75rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #fafafa;
+    font-size: 0.85rem;
+    color: #6b7280;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.shade-mini-dropzone:hover {
+    border-color: #7c3aed;
+    background: #faf5ff;
+}
+
+.shade-mini-dropzone img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+/* ========== SHADE GALLERY DROPZONE ========== */
+.shade-gallery-dropzone {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 0.75rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #fafafa;
+    font-size: 0.85rem;
+    color: #6b7280;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.shade-gallery-dropzone:hover {
+    border-color: #7c3aed;
+    background: #faf5ff;
+}
+
+/* ========== SHADE CARD (Admin List) ========== */
+.shade-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s;
+}
+
+.shade-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-color: #c7d2fe;
+}
+
+.shade-card .shade-swatch-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.shade-card .shade-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.shade-card .shade-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #1e293b;
+}
+
+.shade-card .shade-img-count {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.shade-card .shade-gallery-thumbs {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.shade-card .shade-gallery-thumbs img {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.shade-card .shade-delete-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.shade-card .shade-delete-btn:hover {
+    background: #ef4444;
+    color: white;
+}

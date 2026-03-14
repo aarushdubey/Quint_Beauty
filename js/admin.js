@@ -513,6 +513,11 @@ document.getElementById('orderModal')?.addEventListener('click', (e) => {
 let allProducts = [];
 let editingProductId = null;
 
+// ========== SHADE MANAGEMENT STATE ==========
+let productShades = []; // Array of shade objects: { name, swatchFile, swatchUrl, galleryFiles, galleryUrls }
+let currentShadeSwatchFile = null;
+let currentShadeGalleryFiles = [];
+
 // Load Products from Firestore
 async function loadProducts() {
     try {
@@ -553,10 +558,14 @@ function displayProducts() {
         card.onmouseenter = () => card.style.transform = 'translateY(-4px)';
         card.onmouseleave = () => card.style.transform = 'translateY(0)';
 
+        const shadesBadge = product.hasShades && product.shades && product.shades.length > 0
+            ? `<span style="display: inline-block; background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 12px; margin-left: 0.5rem; vertical-align: middle;">🎨 ${product.shades.length} shades</span>`
+            : '';
+
         card.innerHTML = `
             <img src="${product.image}" style="width: 100%; height: 200px; object-fit: cover;">
             <div style="padding: 1rem;">
-                <h4 style="margin: 0 0 0.5rem 0; font-size: 1.1rem;">${product.name}</h4>
+                <h4 style="margin: 0 0 0.5rem 0; font-size: 1.1rem;">${product.name}${shadesBadge}</h4>
                 <p style="color: #666; font-size: 0.9rem; margin: 0 0 0.5rem 0; line-height: 1.4;">${product.description}</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                     <span style="font-size: 1.2rem; font-weight: 600;">₹${parseFloat(product.price).toFixed(2)}</span>
@@ -820,15 +829,312 @@ async function uploadImageToImgBB(file) {
 }
 
 
+// ========== SHADE MANAGEMENT FUNCTIONS ==========
+
+function initializeShadeToggle() {
+    const toggle = document.getElementById('hasShadesToggle');
+    const shadesSection = document.getElementById('shadesSection');
+    const mainImagesSection = document.getElementById('mainProductImagesSection');
+
+    if (!toggle) return;
+
+    toggle.addEventListener('change', () => {
+        if (toggle.checked) {
+            shadesSection.style.display = 'block';
+            // When shades enabled, main images become optional (label changes)
+            const mainLabel = mainImagesSection?.querySelector('label');
+            if (mainLabel) mainLabel.textContent = 'Default Product Image (optional when shades are added)';
+        } else {
+            shadesSection.style.display = 'none';
+            const mainLabel = mainImagesSection?.querySelector('label');
+            if (mainLabel) mainLabel.textContent = 'Product Image *';
+        }
+    });
+}
+
+function initializeShadeUploadHandlers() {
+    // Swatch upload
+    const swatchZone = document.getElementById('shadeSwatchDropZone');
+    const swatchInput = document.getElementById('shadeSwatchFile');
+
+    if (swatchZone && swatchInput) {
+        swatchZone.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+            swatchInput.click();
+        });
+
+        swatchInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                currentShadeSwatchFile = e.target.files[0];
+                renderShadeSwatchPreview();
+            }
+        });
+    }
+
+    // Gallery upload
+    const galleryZone = document.getElementById('shadeGalleryDropZone');
+    const galleryInput = document.getElementById('shadeGalleryFiles');
+
+    if (galleryZone && galleryInput) {
+        galleryZone.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+            galleryInput.click();
+        });
+
+        galleryInput.addEventListener('change', (e) => {
+            if (e.target.files) {
+                const newFiles = Array.from(e.target.files);
+                if (currentShadeGalleryFiles.length + newFiles.length > 6) {
+                    alert('Maximum 6 images per shade.');
+                    return;
+                }
+                newFiles.forEach(f => {
+                    if (f.type.startsWith('image/') && f.size <= 5 * 1024 * 1024) {
+                        currentShadeGalleryFiles.push(f);
+                    }
+                });
+                renderShadeGalleryPreview();
+                galleryInput.value = '';
+            }
+        });
+    }
+
+    // Add shade button
+    const addShadeBtn = document.getElementById('addShadeBtn');
+    if (addShadeBtn) {
+        addShadeBtn.addEventListener('click', addShadeToList);
+    }
+}
+
+function renderShadeSwatchPreview() {
+    const preview = document.getElementById('shadeSwatchPreview');
+    const placeholder = document.getElementById('shadeSwatchPlaceholder');
+
+    if (!preview || !currentShadeSwatchFile) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        preview.innerHTML = `<img src="${e.target.result}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;">`;
+        preview.style.display = 'block';
+        if (placeholder) placeholder.style.display = 'none';
+    };
+    reader.readAsDataURL(currentShadeSwatchFile);
+}
+
+function renderShadeGalleryPreview() {
+    const container = document.getElementById('shadeGalleryPreviewContainer');
+    const placeholder = document.getElementById('shadeGalleryPlaceholder');
+
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (currentShadeGalleryFiles.length > 0) {
+        container.style.display = 'grid';
+        if (placeholder) placeholder.style.display = 'none';
+
+        currentShadeGalleryFiles.forEach((file, idx) => {
+            const div = document.createElement('div');
+            div.style.cssText = 'position: relative; aspect-ratio: 1/1; border-radius: 6px; overflow: hidden; border: 1px solid #ddd;';
+
+            const img = document.createElement('img');
+            img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+
+            const reader = new FileReader();
+            reader.onload = (e) => img.src = e.target.result;
+            reader.readAsDataURL(file);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.innerHTML = '×';
+            removeBtn.style.cssText = 'position: absolute; top: 2px; right: 2px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; cursor: pointer; font-size: 0.7rem; display: flex; align-items: center; justify-content: center;';
+            removeBtn.onclick = (e) => {
+                e.stopPropagation();
+                currentShadeGalleryFiles.splice(idx, 1);
+                renderShadeGalleryPreview();
+            };
+
+            div.appendChild(img);
+            div.appendChild(removeBtn);
+            container.appendChild(div);
+        });
+    } else {
+        container.style.display = 'none';
+        if (placeholder) placeholder.style.display = 'block';
+    }
+}
+
+function addShadeToList() {
+    const nameInput = document.getElementById('shadeName');
+    const shadeName = nameInput?.value?.trim();
+
+    if (!shadeName) {
+        alert('Please enter a shade name.');
+        return;
+    }
+
+    if (!currentShadeSwatchFile) {
+        alert('Please upload a shade swatch image.');
+        return;
+    }
+
+    if (currentShadeGalleryFiles.length === 0) {
+        alert('Please upload at least one gallery image for this shade.');
+        return;
+    }
+
+    // Create shade object with file references
+    const shade = {
+        name: shadeName,
+        swatchFile: currentShadeSwatchFile,
+        swatchUrl: null, // Will be set after upload
+        galleryFiles: [...currentShadeGalleryFiles],
+        galleryUrls: [] // Will be populated after upload
+    };
+
+    productShades.push(shade);
+
+    // Reset shade input fields
+    nameInput.value = '';
+    currentShadeSwatchFile = null;
+    currentShadeGalleryFiles = [];
+
+    // Reset previews
+    const swatchPreview = document.getElementById('shadeSwatchPreview');
+    const swatchPlaceholder = document.getElementById('shadeSwatchPlaceholder');
+    const galleryContainer = document.getElementById('shadeGalleryPreviewContainer');
+    const galleryPlaceholder = document.getElementById('shadeGalleryPlaceholder');
+    const swatchInput = document.getElementById('shadeSwatchFile');
+    const galleryInput = document.getElementById('shadeGalleryFiles');
+
+    if (swatchPreview) { swatchPreview.innerHTML = ''; swatchPreview.style.display = 'none'; }
+    if (swatchPlaceholder) swatchPlaceholder.style.display = 'block';
+    if (galleryContainer) { galleryContainer.innerHTML = ''; galleryContainer.style.display = 'none'; }
+    if (galleryPlaceholder) galleryPlaceholder.style.display = 'block';
+    if (swatchInput) swatchInput.value = '';
+    if (galleryInput) galleryInput.value = '';
+
+    renderShadesList();
+}
+
+function renderShadesList() {
+    const container = document.getElementById('shadesList');
+    const noMsg = document.getElementById('noShadesMsg');
+
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (productShades.length === 0) {
+        if (noMsg) noMsg.style.display = 'block';
+        return;
+    }
+
+    if (noMsg) noMsg.style.display = 'none';
+
+    productShades.forEach((shade, index) => {
+        const card = document.createElement('div');
+        card.className = 'shade-card';
+
+        // Create swatch image
+        const swatchImg = document.createElement('img');
+        swatchImg.className = 'shade-swatch-img';
+
+        if (shade.swatchUrl) {
+            swatchImg.src = shade.swatchUrl;
+        } else if (shade.swatchFile) {
+            const reader = new FileReader();
+            reader.onload = (e) => swatchImg.src = e.target.result;
+            reader.readAsDataURL(shade.swatchFile);
+        }
+
+        // Info section
+        const info = document.createElement('div');
+        info.className = 'shade-info';
+        info.innerHTML = `
+            <div class="shade-name">${shade.name}</div>
+            <div class="shade-img-count">${shade.galleryFiles?.length || shade.galleryUrls?.length || 0} gallery image(s)</div>
+        `;
+
+        // Gallery thumbnails
+        const thumbs = document.createElement('div');
+        thumbs.className = 'shade-gallery-thumbs';
+
+        const galleryImages = shade.galleryUrls?.length > 0 ? shade.galleryUrls : [];
+        const galleryFiles = shade.galleryFiles || [];
+
+        if (galleryImages.length > 0) {
+            galleryImages.slice(0, 3).forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                thumbs.appendChild(img);
+            });
+        } else if (galleryFiles.length > 0) {
+            galleryFiles.slice(0, 3).forEach(file => {
+                const img = document.createElement('img');
+                const reader = new FileReader();
+                reader.onload = (e) => img.src = e.target.result;
+                reader.readAsDataURL(file);
+                thumbs.appendChild(img);
+            });
+        }
+
+        // Delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'shade-delete-btn';
+        deleteBtn.innerHTML = '×';
+        deleteBtn.onclick = () => {
+            productShades.splice(index, 1);
+            renderShadesList();
+        };
+
+        card.appendChild(swatchImg);
+        card.appendChild(info);
+        card.appendChild(thumbs);
+        card.appendChild(deleteBtn);
+        container.appendChild(card);
+    });
+}
+
+// Initialize shade handlers on DOM load
+document.addEventListener('DOMContentLoaded', () => {
+    initializeShadeToggle();
+    initializeShadeUploadHandlers();
+});
+
+
 // Open Add Product Modal
 // Open Add Product Modal
 document.getElementById('addProductBtn')?.addEventListener('click', () => {
     editingProductId = null;
     currentImageFiles = []; // Clear any previous files
     existingImageUrls = []; // Clear existing URLs
+    productShades = []; // Clear shades
+    currentShadeSwatchFile = null;
+    currentShadeGalleryFiles = [];
+
     document.getElementById('productModalTitle').textContent = 'Add New Product';
     document.getElementById('productSubmitText').textContent = 'Add Product';
     document.getElementById('productForm').reset();
+
+    // Reset shades UI
+    const shadesToggle = document.getElementById('hasShadesToggle');
+    if (shadesToggle) shadesToggle.checked = false;
+    const shadesSection = document.getElementById('shadesSection');
+    if (shadesSection) shadesSection.style.display = 'none';
+    renderShadesList();
+
+    // Reset shade input previews
+    const swatchPreview = document.getElementById('shadeSwatchPreview');
+    const swatchPlaceholder = document.getElementById('shadeSwatchPlaceholder');
+    const galleryContainer = document.getElementById('shadeGalleryPreviewContainer');
+    const galleryPlaceholder = document.getElementById('shadeGalleryPlaceholder');
+    if (swatchPreview) { swatchPreview.innerHTML = ''; swatchPreview.style.display = 'none'; }
+    if (swatchPlaceholder) swatchPlaceholder.style.display = 'block';
+    if (galleryContainer) { galleryContainer.innerHTML = ''; galleryContainer.style.display = 'none'; }
+    if (galleryPlaceholder) galleryPlaceholder.style.display = 'block';
+
+    // Reset main image label
+    const mainImagesSection = document.getElementById('mainProductImagesSection');
+    const mainLabel = mainImagesSection?.querySelector('label');
+    if (mainLabel) mainLabel.textContent = 'Product Image *';
 
     // Reset image upload area
     const dropZoneContent = document.getElementById('dropZoneContent');
@@ -856,6 +1162,9 @@ window.closeProductModal = function () {
     editingProductId = null;
     currentImageFiles = [];
     existingImageUrls = [];
+    productShades = [];
+    currentShadeSwatchFile = null;
+    currentShadeGalleryFiles = [];
 };
 
 // Submit Product Form
@@ -865,6 +1174,8 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
 
     const submitBtn = document.getElementById('productSubmitText');
     const originalText = submitBtn.textContent;
+    const hasShadesToggle = document.getElementById('hasShadesToggle');
+    const hasShades = hasShadesToggle?.checked || false;
 
     try {
         let imageUrls = [...existingImageUrls];
@@ -891,12 +1202,61 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
             }
         }
 
+        // ========== UPLOAD SHADE IMAGES ==========
+        let shadesData = [];
 
+        if (hasShades && productShades.length > 0) {
+            submitBtn.textContent = 'Uploading shade images...';
+
+            for (let s = 0; s < productShades.length; s++) {
+                const shade = productShades[s];
+                let swatchUrl = shade.swatchUrl || null;
+                let galleryUrls = [...(shade.galleryUrls || [])];
+
+                // Upload swatch if it's a file
+                if (shade.swatchFile && !swatchUrl) {
+                    submitBtn.textContent = `Shade ${s + 1}: Uploading swatch...`;
+                    try {
+                        swatchUrl = await uploadImageToImgBB(shade.swatchFile);
+                    } catch (err) {
+                        console.error(`Failed to upload swatch for shade ${shade.name}:`, err);
+                        alert(`Failed to upload swatch for "${shade.name}"`);
+                    }
+                }
+
+                // Upload gallery files
+                if (shade.galleryFiles && shade.galleryFiles.length > 0) {
+                    for (let g = 0; g < shade.galleryFiles.length; g++) {
+                        submitBtn.textContent = `Shade ${s + 1}: Uploading image ${g + 1}/${shade.galleryFiles.length}...`;
+                        try {
+                            const url = await uploadImageToImgBB(shade.galleryFiles[g]);
+                            galleryUrls.push(url);
+                        } catch (err) {
+                            console.error(`Failed gallery upload for shade ${shade.name}:`, err);
+                        }
+                    }
+                }
+
+                shadesData.push({
+                    name: shade.name,
+                    swatchUrl: swatchUrl,
+                    galleryUrls: galleryUrls
+                });
+            }
+        }
+
+        // If shades are enabled and no main images uploaded, use first shade's first gallery image
+        if (hasShades && shadesData.length > 0 && imageUrls.length === 0) {
+            if (shadesData[0].galleryUrls && shadesData[0].galleryUrls.length > 0) {
+                imageUrls.push(shadesData[0].galleryUrls[0]);
+            }
+        }
 
         console.log('Final image URLs:', imageUrls);
+        console.log('Shades data:', shadesData);
 
-        if (imageUrls.length === 0) {
-            alert('Please upload at least one product image');
+        if (imageUrls.length === 0 && (!hasShades || shadesData.length === 0)) {
+            alert('Please upload at least one product image or add shades with images');
             submitBtn.textContent = originalText;
             return;
         }
@@ -911,8 +1271,10 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
             price: parseFloat(document.getElementById('productPrice').value),
             stock: parseInt(document.getElementById('productStock').value),
             category: document.getElementById('productCategory').value,
-            image: imageUrls[0], // Main image (first one)
+            image: imageUrls[0] || '', // Main image (first one)
             images: imageUrls,   // Full gallery
+            hasShades: hasShades,
+            shades: hasShades ? shadesData : [],
             updatedAt: new Date().toISOString()
         };
 
@@ -920,7 +1282,6 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
 
         if (editingProductId) {
             // Update existing product
-            // Check if we have imports, assume accessible as per original file
             const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
             const productRef = doc(db, 'products', editingProductId);
             await updateDoc(productRef, productData);
@@ -953,9 +1314,24 @@ window.editProduct = function (productId) {
 
     editingProductId = productId;
     currentImageFiles = []; // Clear new files list
+    currentShadeSwatchFile = null;
+    currentShadeGalleryFiles = [];
 
     // Populate existing images
     existingImageUrls = product.images || (product.image ? [product.image] : []);
+
+    // Populate shades
+    if (product.hasShades && product.shades && product.shades.length > 0) {
+        productShades = product.shades.map(s => ({
+            name: s.name,
+            swatchFile: null,
+            swatchUrl: s.swatchUrl,
+            galleryFiles: [],
+            galleryUrls: s.galleryUrls || []
+        }));
+    } else {
+        productShades = [];
+    }
 
     document.getElementById('productModalTitle').textContent = 'Edit Product';
     document.getElementById('productSubmitText').textContent = 'Update Product';
@@ -968,6 +1344,37 @@ window.editProduct = function (productId) {
     document.getElementById('productStock').value = product.stock;
     document.getElementById('productCategory').value = product.category;
     document.getElementById('productImage').value = product.image || '';
+
+    // Set shades toggle
+    const shadesToggle = document.getElementById('hasShadesToggle');
+    const shadesSection = document.getElementById('shadesSection');
+    const mainImagesSection = document.getElementById('mainProductImagesSection');
+
+    if (shadesToggle) {
+        shadesToggle.checked = product.hasShades || false;
+        if (product.hasShades) {
+            if (shadesSection) shadesSection.style.display = 'block';
+            const mainLabel = mainImagesSection?.querySelector('label');
+            if (mainLabel) mainLabel.textContent = 'Default Product Image (optional when shades are added)';
+        } else {
+            if (shadesSection) shadesSection.style.display = 'none';
+            const mainLabel = mainImagesSection?.querySelector('label');
+            if (mainLabel) mainLabel.textContent = 'Product Image *';
+        }
+    }
+
+    // Reset shade input previews
+    const swatchPreview = document.getElementById('shadeSwatchPreview');
+    const swatchPlaceholder = document.getElementById('shadeSwatchPlaceholder');
+    const galleryContainer = document.getElementById('shadeGalleryPreviewContainer');
+    const galleryPlaceholder = document.getElementById('shadeGalleryPlaceholder');
+    if (swatchPreview) { swatchPreview.innerHTML = ''; swatchPreview.style.display = 'none'; }
+    if (swatchPlaceholder) swatchPlaceholder.style.display = 'block';
+    if (galleryContainer) { galleryContainer.innerHTML = ''; galleryContainer.style.display = 'none'; }
+    if (galleryPlaceholder) galleryPlaceholder.style.display = 'block';
+
+    // Render shades list
+    renderShadesList();
 
     // Render previews
     renderPreviews();

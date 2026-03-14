@@ -265,7 +265,7 @@
 
     <!-- Product Modal -->
     <div id="productModal" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content" style="max-width: 700px;">
             <button class="modal-close" onclick="closeProductModal()">&times;</button>
             <div id="productModalBody">
                 <h2 id="productModalTitle" style="margin-bottom: 2rem;">Add New Product</h2>
@@ -326,7 +326,70 @@
                         </select>
                     </div>
 
-                    <div style="margin-bottom: 2rem;">
+                    <!-- ========== SHADES TOGGLE ========== -->
+                    <div style="margin-bottom: 1.5rem; padding: 1.25rem; background: linear-gradient(135deg, #fdf2f8, #fce7f3); border-radius: 12px; border: 1px solid #f9a8d4;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <label style="display: block; font-weight: 600; font-size: 1rem; color: #831843;">🎨 Product Shades</label>
+                                <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #9d174d;">Enable to add multiple shade variants (e.g. lipstick colors)</p>
+                            </div>
+                            <label class="shade-toggle-switch">
+                                <input type="checkbox" id="hasShadesToggle">
+                                <span class="shade-toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- ========== SHADES MANAGEMENT SECTION ========== -->
+                    <div id="shadesSection" style="display: none; margin-bottom: 2rem;">
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem;">
+                            <h4 style="margin: 0 0 1rem 0; font-family: var(--font-body); font-size: 0.95rem; color: #334155;">
+                                Manage Shades
+                            </h4>
+
+                            <!-- Add Shade Form -->
+                            <div id="addShadeForm" style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem;">
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; margin-bottom: 0.4rem; font-weight: 500; font-size: 0.9rem;">Shade Name *</label>
+                                    <input type="text" id="shadeName" placeholder="e.g. Rose Blush, Berry Wine..."
+                                        style="width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-family: var(--font-body); font-size: 0.9rem;">
+                                </div>
+
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; margin-bottom: 0.4rem; font-weight: 500; font-size: 0.9rem;">Shade Color Swatch *</label>
+                                    <p style="margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #999;">Upload a small color swatch image that represents this shade</p>
+                                    <div id="shadeSwatchDropZone" class="shade-mini-dropzone">
+                                        <input type="file" id="shadeSwatchFile" accept="image/*" style="display: none;">
+                                        <div id="shadeSwatchPreview" style="display: none;"></div>
+                                        <span id="shadeSwatchPlaceholder">📎 Click to upload swatch</span>
+                                    </div>
+                                </div>
+
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; margin-bottom: 0.4rem; font-weight: 500; font-size: 0.9rem;">Shade Gallery Images (up to 6) *</label>
+                                    <p style="margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #999;">Upload product photos specifically for this shade</p>
+                                    <div id="shadeGalleryDropZone" class="shade-gallery-dropzone">
+                                        <input type="file" id="shadeGalleryFiles" accept="image/*" multiple style="display: none;">
+                                        <div id="shadeGalleryPreviewContainer" style="display: none; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 0.5rem;"></div>
+                                        <span id="shadeGalleryPlaceholder">📷 Click to upload gallery images</span>
+                                    </div>
+                                </div>
+
+                                <button type="button" id="addShadeBtn"
+                                    style="width: 100%; padding: 0.65rem; background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.3s;">
+                                    + Add This Shade
+                                </button>
+                            </div>
+
+                            <!-- Added Shades List -->
+                            <div id="shadesListContainer">
+                                <p id="noShadesMsg" style="text-align: center; color: #94a3b8; font-size: 0.85rem; padding: 1rem;">No shades added yet</p>
+                                <div id="shadesList"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="mainProductImagesSection" style="margin-bottom: 2rem;">
                         <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Product Image *</label>
 
                         <!-- Drag & Drop Area -->
