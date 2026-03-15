@@ -683,8 +683,8 @@ function handleImageFiles(files) {
             alert(`Skipped ${file.name}: Not an image.`);
             return;
         }
-        if (file.size > 5 * 1024 * 1024) {
-            alert(`Skipped ${file.name}: Size > 5MB.`);
+        if (file.size > 10 * 1024 * 1024) {
+            alert(`Skipped ${file.name}: Size > 10MB.`);
             return;
         }
         // Add to list
@@ -889,7 +889,7 @@ function initializeShadeUploadHandlers() {
                     return;
                 }
                 newFiles.forEach(f => {
-                    if (f.type.startsWith('image/') && f.size <= 5 * 1024 * 1024) {
+                    if (f.type.startsWith('image/') && f.size <= 10 * 1024 * 1024) {
                         currentShadeGalleryFiles.push(f);
                     }
                 });
