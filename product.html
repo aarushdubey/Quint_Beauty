@@ -42,8 +42,15 @@
             height: 500px;
             background: #F9F7F5;
             margin-bottom: 1rem;
-            object-fit: cover;
+            object-fit: contain;
             cursor: zoom-in;
+        }
+
+        @media (max-width: 899px) {
+            .product-main-img {
+                height: auto;
+                max-height: 600px;
+            }
         }
 
         .product-thumbs {
